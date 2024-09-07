@@ -17,6 +17,12 @@ function convertToAbsoluteTime() {
   });
 }
 
+function handleUrlChange() {
+  console.log("URL changed, waiting for content to load...");
+  // Wait a short time for content to load before converting
+  setTimeout(convertToAbsoluteTime, 1000);
+}
+
 // Run the function when the page loads
 convertToAbsoluteTime();
 
@@ -38,9 +44,19 @@ new MutationObserver(() => {
   const url = location.href;
   if (url !== lastUrl) {
     lastUrl = url;
-    convertToAbsoluteTime();
+    handleUrlChange();
   }
 }).observe(document, {subtree: true, childList: true});
 
 // Listen for popstate events (back/forward navigation)
-window.addEventListener('popstate', convertToAbsoluteTime);
+window.addEventListener('popstate', handleUrlChange);
+
+// Add a periodic check to catch any missed conversions
+setInterval(convertToAbsoluteTime, 5000);
+
+// Listen for manual trigger from extension icon click
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === "convertTime") {
+    convertToAbsoluteTime();
+  }
+});
