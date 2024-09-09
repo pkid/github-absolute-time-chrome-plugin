@@ -1,5 +1,4 @@
 function convertToAbsoluteTime() {
-  console.log("You are using GitHub Absolute Time plugin. If not needed, please disable it.");
   const relativeTimeElements = document.querySelectorAll('relative-time');
 
   relativeTimeElements.forEach((element) => {
@@ -11,14 +10,11 @@ function convertToAbsoluteTime() {
       const date = new Date(title);
       const formattedDate = date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
       shadowRoot.textContent = formattedDate;
-    } else {
-      console.log("No title attribute found");
     }
   });
 }
 
 function handleUrlChange() {
-  console.log("URL changed, waiting for content to load...");
   // Wait a short time for content to load before converting
   setTimeout(convertToAbsoluteTime, 1000);
 }
