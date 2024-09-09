@@ -50,13 +50,3 @@ new MutationObserver(() => {
 
 // Listen for popstate events (back/forward navigation)
 window.addEventListener('popstate', handleUrlChange);
-
-// Add a periodic check to catch any missed conversions
-setInterval(convertToAbsoluteTime, 5000);
-
-// Listen for manual trigger from extension icon click
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === "convertTime") {
-    convertToAbsoluteTime();
-  }
-});
