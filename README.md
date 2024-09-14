@@ -12,7 +12,7 @@ This Chrome extension replaces relative time expressions on GitHub with absolute
 
 1. Clone this repository:
    ```
-   git clone https://github.com/pkid/github-absolute-time-extension.git
+   git clone https://github.com/pkid/github-absolute-time-chrome-plugin.git
    ```
 
 2. Open Google Chrome and navigate to `chrome://extensions`
