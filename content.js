@@ -10,6 +10,15 @@ function convertToAbsoluteTime() {
       const date = new Date(title);
       const formattedDate = date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
       shadowRoot.textContent = formattedDate;
+
+      // Observe changes to the shadowRoot
+      const observer = new MutationObserver(() => {
+        shadowRoot.textContent = formattedDate;
+      });
+
+      // Start observing the shadowRoot for changes
+      observer.observe(shadowRoot, { childList: true, subtree: true });
+      
     }
   });
 }
