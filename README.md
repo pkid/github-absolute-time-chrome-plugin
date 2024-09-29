@@ -1,4 +1,4 @@
-# GitHub Absolute Time Chrome Extension
+# GitHub Absolute Date Chrome Extension
 
 This Chrome extension replaces relative time expressions on GitHub with absolute dates, making it easier to understand when events occurred without hovering over timestamps.
 
