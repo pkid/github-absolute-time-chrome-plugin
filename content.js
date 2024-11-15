@@ -1,4 +1,29 @@
-function convertToAbsoluteTime() {
+function waitForElement(selector) {
+  return new Promise(resolve => {
+    if (document.querySelector(selector)) {
+        return resolve(document.querySelector(selector));
+    }
+
+    const observer = new MutationObserver(() => {
+        if (document.querySelector(selector)) {
+            observer.disconnect();
+            resolve(document.querySelector(selector));
+        }
+    });
+
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+  });
+}
+
+async function convertToAbsoluteTime() {
+  console.log('Converting dates...');
+
+  // Wait for at least one relative-time element to exist
+  await waitForElement('relative-time');
+  
   const relativeTimeElements = document.querySelectorAll('relative-time');
 
   relativeTimeElements.forEach((element) => {
@@ -7,31 +32,31 @@ function convertToAbsoluteTime() {
     
     const title = element.getAttribute('title');
     if (title) {
+      console.log('Converting:', element.textContent, 'to absolute time');
       const date = new Date(title);
-      const formattedDate = date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+      const formattedDate = date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+      });
       shadowRoot.textContent = formattedDate;
 
-      // Observe changes to the shadowRoot
       const observer = new MutationObserver(() => {
         shadowRoot.textContent = formattedDate;
       });
 
-      // Start observing the shadowRoot for changes
       observer.observe(shadowRoot, { childList: true, subtree: true });
-      
     }
   });
 }
 
-function handleUrlChange() {
-  // Wait a short time for content to load before converting
-  setTimeout(convertToAbsoluteTime, 1000);
+async function handleUrlChange() {
+  await convertToAbsoluteTime();
 }
 
-// Run the function when the page loads
-convertToAbsoluteTime();
+// Initial conversion when page loads
+handleUrlChange();
 
-// Use a MutationObserver to handle dynamically loaded content
 const observer = new MutationObserver(mutations => {
   for (let mutation of mutations) {
     if (mutation.addedNodes.length) {
@@ -43,7 +68,6 @@ const observer = new MutationObserver(mutations => {
 
 observer.observe(document.body, { childList: true, subtree: true });
 
-// Listen for URL changes
 let lastUrl = location.href;
 new MutationObserver(() => {
   const url = location.href;
@@ -53,5 +77,4 @@ new MutationObserver(() => {
   }
 }).observe(document, {subtree: true, childList: true});
 
-// Listen for popstate events (back/forward navigation)
 window.addEventListener('popstate', handleUrlChange);
