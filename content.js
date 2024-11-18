@@ -19,8 +19,6 @@ function waitForElement(selector) {
 }
 
 async function convertToAbsoluteTime() {
-  console.log('Converting dates...');
-
   // Wait for at least one relative-time element to exist
   await waitForElement('relative-time');
   
@@ -32,7 +30,6 @@ async function convertToAbsoluteTime() {
     
     const title = element.getAttribute('title');
     if (title) {
-      console.log('Converting:', element.textContent, 'to absolute time');
       const date = new Date(title);
       const formattedDate = date.toLocaleDateString('en-US', { 
         year: 'numeric', 
