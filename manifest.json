@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "GitHub Absolute Dates Plugin",
-    "version": "0.0.6",
+    "version": "0.0.7",
     "description": "Display absolute dates on GitHub pages instead of relative time",
     "icons": {
         "16": "icons/icon16.png",
@@ -10,7 +10,7 @@
     },
     "content_scripts": [
       {
-        "matches": ["https://github.com/*"],
+        "matches": ["https://github.com/*", "https://*.sap.com/*"],
         "js": ["content.js"]
       }
     ]
