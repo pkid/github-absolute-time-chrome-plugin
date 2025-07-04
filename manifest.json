@@ -10,7 +10,7 @@
     },
     "content_scripts": [
       {
-        "matches": ["https://github.com/*", "https://*.sap.com/*"],
+        "matches": ["https://github.com/*", "https://github.wdf.sap.corp/*", "https://github.tools.sap.corp/*"],
         "js": ["content.js"]
       }
     ]
