@@ -48,7 +48,7 @@ const processedElements = new WeakSet();
 
 function formatDate(dateString) {
   const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', {
+  return date.toLocaleDateString(navigator.language, {
     year: 'numeric',
     month: 'short',
     day: 'numeric'
