@@ -68,17 +68,20 @@ function formatDate(dateString) {
 }
 
 function convertElement(element) {
-  if (processedElements.has(element)) return;
-  
   const shadowRoot = element.shadowRoot;
   if (!shadowRoot) return;
   
   const title = element.getAttribute('title');
   if (!title) return;
   
+  // Check if the element has been reset by comparing current content
+  const currentContent = shadowRoot.textContent;
   const formattedDate = formatDate(title);
-  shadowRoot.textContent = formattedDate;
-  processedElements.add(element);
+  
+  // If content doesn't match our format or is relative text, convert it
+  if (currentContent !== formattedDate) {
+    shadowRoot.textContent = formattedDate;
+  }
 }
 
 function convertToAbsoluteTime() {

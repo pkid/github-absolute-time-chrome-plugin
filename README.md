@@ -1,10 +1,10 @@
 # GitHub Absolute Date Chrome Extension
 
-This Chrome extension replaces relative time expressions on GitHub with absolute dates, making it easier to understand when events occurred without hovering over timestamps.
+This Chrome extension replaces relative time expressions on GitHub with absolute dates and times, making it easier to understand when events occurred without hovering over timestamps.
 
 ## Features
 
-- Converts relative time expressions (e.g., "2 days ago") to absolute dates (e.g., "Jun 15, 2023")
+- Converts relative time expressions (e.g., "2 days ago") to absolute dates and times (e.g., "9/14/24, 4:25 PM")
 
 ## Installation
 
@@ -25,7 +25,7 @@ This Chrome extension replaces relative time expressions on GitHub with absolute
 
 ## Usage
 
-Once installed, the extension will automatically convert relative times to absolute dates on GitHub pages. 
+Once installed, the extension will automatically convert relative times to absolute dates and times on GitHub pages. 
 
 ## Development
 
