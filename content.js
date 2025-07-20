@@ -48,11 +48,23 @@ const processedElements = new WeakSet();
 
 function formatDate(dateString) {
   const date = new Date(dateString);
-  return date.toLocaleDateString(navigator.language, {
-    year: 'numeric',
-    month: 'short',
+  const locale = navigator.language;
+
+  // Format the date part based on locale
+  const datePart = date.toLocaleDateString(locale, {
+    year: '2-digit',
+    month: 'numeric',
     day: 'numeric'
   });
+
+  // Format the time part based on locale
+  const timePart = date.toLocaleTimeString(locale, {
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: locale.startsWith('en') // Use 12-hour format only for English locales
+  });
+
+  return `${datePart}, ${timePart}`;
 }
 
 function convertElement(element) {
