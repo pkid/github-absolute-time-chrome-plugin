@@ -68,23 +68,44 @@ function formatDate(dateString) {
 }
 
 function convertElement(element) {
+  // Skip conversion on GitHub Actions pages to prevent flickering
+  if (location.pathname.includes('/actions/runs/')) {
+    return;
+  }
+  
   const shadowRoot = element.shadowRoot;
   if (!shadowRoot) return;
   
   const title = element.getAttribute('title');
   if (!title) return;
   
-  // Check if the element has been reset by comparing current content
-  const currentContent = shadowRoot.textContent;
   const formattedDate = formatDate(title);
   
-  // If content doesn't match our format or is relative text, convert it
-  if (currentContent !== formattedDate) {
-    shadowRoot.textContent = formattedDate;
+  // Set the content to absolute format
+  shadowRoot.textContent = formattedDate;
+  
+  // Watch for changes to this specific element and revert them
+  if (!element._absoluteTimeObserver) {
+    element._absoluteTimeObserver = new MutationObserver(() => {
+      if (shadowRoot.textContent !== formattedDate) {
+        shadowRoot.textContent = formattedDate;
+      }
+    });
+    
+    element._absoluteTimeObserver.observe(shadowRoot, {
+      childList: true,
+      characterData: true,
+      subtree: true
+    });
   }
 }
 
 function convertToAbsoluteTime() {
+  // Skip conversion on GitHub Actions pages to prevent flickering
+  if (location.pathname.includes('/actions/runs/')) {
+    return;
+  }
+  
   const relativeTimeElements = document.querySelectorAll('relative-time');
   relativeTimeElements.forEach(convertElement);
 }
@@ -117,12 +138,6 @@ const urlObserver = new MutationObserver(() => {
 });
 
 urlObserver.observe(document, { subtree: true, childList: true });
-
-// Initial conversion
-convertToAbsoluteTime();
-
-// Handle popstate (back/forward navigation)
-window.addEventListener('popstate', debouncedConvert);
 
 // Cleanup on page unload
 window.addEventListener('unload', () => {
