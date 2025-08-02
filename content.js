@@ -139,15 +139,6 @@ const urlObserver = new MutationObserver(() => {
 
 urlObserver.observe(document, { subtree: true, childList: true });
 
-// Initial conversion with a delay to let GitHub's scripts settle
-setTimeout(convertToAbsoluteTime, 1000);
-
-// Handle popstate (back/forward navigation)
-window.addEventListener('popstate', () => {
-  // Add delay for navigation as well
-  setTimeout(debouncedConvert, 1000);
-});
-
 // Cleanup on page unload
 window.addEventListener('unload', () => {
   observer.disconnect();
