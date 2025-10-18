@@ -46,6 +46,23 @@ function debounce(func, wait) {
 // Keep track of processed elements to avoid duplicates
 const processedElements = new WeakSet();
 
+// Default time format setting
+let timeFormatSetting = 'auto';
+
+// Load time format setting from storage
+chrome.storage.sync.get(['timeFormat'], function(result) {
+  timeFormatSetting = result.timeFormat || 'auto';
+});
+
+// Listen for messages from popup
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+  if (request.action === 'updateTimeFormat') {
+    timeFormatSetting = request.timeFormat;
+    // Re-convert all elements with new format
+    convertToAbsoluteTime();
+  }
+});
+
 function formatDate(dateString) {
   const date = new Date(dateString);
   const locale = navigator.language;
@@ -57,11 +74,22 @@ function formatDate(dateString) {
     day: 'numeric'
   });
 
-  // Format the time part based on locale
+  // Determine hour12 setting based on user preference
+  let hour12;
+  if (timeFormatSetting === '12h') {
+    hour12 = true;
+  } else if (timeFormatSetting === '24h') {
+    hour12 = false;
+  } else {
+    // Auto mode - use locale-based detection
+    hour12 = locale.startsWith('en');
+  }
+
+  // Format the time part based on user preference
   const timePart = date.toLocaleTimeString(locale, {
     hour: 'numeric',
     minute: 'numeric',
-    hour12: locale.startsWith('en') // Use 12-hour format only for English locales
+    hour12: hour12
   });
 
   return `${datePart}, ${timePart}`;

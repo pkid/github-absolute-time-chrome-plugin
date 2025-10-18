@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body {
+            width: 250px;
+            padding: 12px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-size: 13px;
+            margin: 0;
+        }
+        
+        .header {
+            margin-bottom: 12px;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: #24292f;
+        }
+        
+        .setting-group {
+            margin-bottom: 12px;
+        }
+        
+        .setting-label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: #24292f;
+            font-size: 12px;
+        }
+        
+        .radio-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .radio-option:hover {
+            background-color: #f6f8fa;
+        }
+        
+        .radio-option input[type="radio"] {
+            margin: 0;
+        }
+        
+        .radio-option label {
+            cursor: pointer;
+            margin: 0;
+            flex: 1;
+            font-size: 12px;
+        }
+        
+        .example {
+            font-size: 10px;
+            color: #656d76;
+            margin-left: 20px;
+        }
+        
+        .save-button {
+            width: 100%;
+            padding: 8px;
+            background-color: #238636;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .save-button:hover {
+            background-color: #2ea043;
+        }
+        
+        .save-button:disabled {
+            background-color: #8c959f;
+            cursor: not-allowed;
+        }
+        
+        .status {
+            margin-top: 8px;
+            padding: 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            text-align: center;
+            display: none;
+        }
+        
+        .status.success {
+            background-color: #d1f7c4;
+            color: #0d1117;
+            border: 1px solid #a2f0ba;
+        }
+        
+        .status.error {
+            background-color: #fef2f2;
+            color: #0d1117;
+            border: 1px solid #fecaca;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>GitHub Absolute Time</h1>
+    </div>
+    
+    <div class="setting-group">
+        <label class="setting-label">Time Format</label>
+        <div class="radio-group">
+            <div class="radio-option">
+                <input type="radio" id="format-12h" name="timeFormat" value="12h">
+                <label for="format-12h">
+                    12-hour format
+                    <div class="example">Example: 4:25 PM</div>
+                </label>
+            </div>
+            <div class="radio-option">
+                <input type="radio" id="format-24h" name="timeFormat" value="24h">
+                <label for="format-24h">
+                    24-hour format
+                    <div class="example">Example: 16:25</div>
+                </label>
+            </div>
+            <div class="radio-option">
+                <input type="radio" id="format-auto" name="timeFormat" value="auto">
+                <label for="format-auto">
+                    Auto (based on locale)
+                    <div class="example">Uses browser locale settings</div>
+                </label>
+            </div>
+        </div>
+    </div>
+    
+    <button class="save-button" id="saveButton">Save Settings</button>
+    
+    <div class="status" id="status"></div>
+    
+    <script src="popup.js"></script>
+</body>
+</html>

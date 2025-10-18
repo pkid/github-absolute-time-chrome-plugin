@@ -1,13 +1,26 @@
 {
     "manifest_version": 3,
     "name": "GitHub Absolute Dates Plugin",
-    "version": "0.0.11",
+    "version": "0.0.12",
     "description": "Display absolute dates on GitHub pages instead of relative time",
     "icons": {
         "16": "icons/icon16.png",
         "48": "icons/icon48.png",
         "128": "icons/icon128.png"
     },
+    "permissions": [
+        "storage"
+    ],
+    "action": {
+        "default_popup": "popup.html",
+        "default_title": "GitHub Absolute Time Settings"
+    },
+    "web_accessible_resources": [
+        {
+            "resources": ["popup.js"],
+            "matches": ["https://github.com/*", "https://github.wdf.sap.corp/*", "https://github.tools.sap.corp/*"]
+        }
+    ],
     "content_scripts": [
       {
         "matches": ["https://github.com/*", "https://github.wdf.sap.corp/*", "https://github.tools.sap.corp/*"],
