@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Notify content scripts to update
                 chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-                    if (tabs[0] && tabs[0].url.includes('github.com')) {
+                    if (tabs[0] && tabs[0].url && tabs[0].url.includes('github.com')) {
                         chrome.tabs.sendMessage(tabs[0].id, {
                             action: 'updateTimeFormat',
                             timeFormat: selectedFormat
