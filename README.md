@@ -1,50 +1,232 @@
-# GitHub Absolute Date Chrome Extension
+# GitHub Absolute Dates Landing Page
 
-This Chrome extension replaces relative time expressions on GitHub with absolute dates and times, making it easier to understand when events occurred without hovering over timestamps.
+A minimal, fast, static landing site for the GitHub Absolute Dates Chrome extension. Built for SEO optimization and Core Web Vitals performance.
 
-## Features
+## 🚀 Quick Start
 
-- Converts relative time expressions (e.g., "2 days ago") to absolute dates and times (e.g., "9/14/24, 4:25 PM")
+This is a pure static site with no build step required. Simply serve the files from any web server.
 
-## Installation
+### Local Development
 
-### For Developers (Local Installation)
+```bash
+# Serve locally with Python
+python -m http.server 8000
 
-1. Clone this repository:
+# Or with Node.js
+npx serve .
+
+# Or with PHP
+php -S localhost:8000
+```
+
+Visit `http://localhost:8000` to view the site.
+
+## 📁 Project Structure
+
+```
+/
+├── index.html              # Main landing page
+├── assets/
+│   ├── css/
+│   │   └── styles.css      # Mobile-first responsive styles
+│   ├── js/
+│   │   └── main.js         # CTA tracking and interactions
+│   └── img/
+│       ├── before.png      # Before screenshot (SVG placeholder)
+│       └── after.png       # After screenshot (SVG placeholder)
+├── robots.txt              # SEO crawling instructions
+├── sitemap.xml             # Site structure for search engines
+├── favicon.ico             # Site favicon
+└── README.md               # This file
+```
+
+## 🌐 Hosting Options
+
+### GitHub Pages (Recommended)
+
+#### Option 1: Main Branch /docs Folder
+
+1. Move all files to a `docs/` folder in your main branch
+2. Go to repository Settings → Pages
+3. Select "Deploy from a branch" → "main" → "/docs"
+4. Your site will be available at `https://username.github.io/repository-name`
+
+#### Option 2: gh-pages Branch
+
+1. Create a new branch called `gh-pages`
+2. Move all files to the root of this branch
+3. Go to repository Settings → Pages
+4. Select "Deploy from a branch" → "gh-pages" → "/ (root)"
+5. Your site will be available at `https://username.github.io/repository-name`
+
+### Netlify
+
+1. Connect your GitHub repository to Netlify
+2. Set build command to empty (no build step needed)
+3. Set publish directory to `/` (root)
+4. Deploy automatically on every push
+
+### Vercel
+
+1. Connect your GitHub repository to Vercel
+2. Set framework preset to "Other"
+3. Set build command to empty
+4. Set output directory to `/` (root)
+
+### Custom Domain Setup
+
+1. Add a `CNAME` file with your domain name:
    ```
-   git clone https://github.com/pkid/github-absolute-time-chrome-plugin.git
+   github-absolute-dates.com
    ```
 
-2. Open Google Chrome and navigate to `chrome://extensions`
+2. Update DNS records to point to your hosting provider
 
-3. Enable "Developer mode" by toggling the switch in the top right corner
+3. Update URLs in:
+   - `index.html` (canonical, Open Graph, Twitter Card URLs)
+   - `sitemap.xml` (all URLs)
+   - `robots.txt` (sitemap URL)
 
-4. Click "Load unpacked" and select the directory where you cloned this repository
+## 🔧 Customization
 
-5. The extension should now appear in your list of installed extensions
+### Updating Meta Tags
 
-## Usage
+Edit the `<head>` section in `index.html`:
 
-Once installed, the extension will automatically convert relative times to absolute dates and times on GitHub pages. 
+```html
+<title>Your Custom Title</title>
+<meta name="description" content="Your custom description">
+<link rel="canonical" href="https://yourdomain.com/">
+```
 
-## Development
+### Updating Schema.org JSON-LD
 
-To modify or enhance the extension:
+Modify the JSON-LD script in `index.html`:
 
-1. Make changes to the relevant files (`content.js`, `background.js`, `manifest.json`)
-2. Save your changes
-3. Go to `chrome://extensions`
-4. Find this extension in the list and click the refresh icon
-5. Reload any open GitHub tabs to see your changes
+```html
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Your Extension Name",
+    "description": "Your description",
+    "downloadUrl": "https://chromewebstore.google.com/detail/your-extension-id",
+    "sameAs": "https://github.com/your-username/your-repo"
+}
+</script>
+```
 
-## Contributing
+### Adding German Translation
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+1. Create `/de/index.html` with German content
+2. Update language links in navigation
+3. Add German URLs to `sitemap.xml`
+4. Update `hreflang` attributes
 
-## License
+### Replacing Images
 
-[MIT License](LICENSE)
+Replace the placeholder SVG files in `/assets/img/`:
 
-## Support
+- `before.png`: Screenshot showing relative timestamps
+- `after.png`: Screenshot showing absolute timestamps
+- `favicon.ico`: Your custom favicon
 
-If you encounter any issues or have suggestions for improvements, please open an issue on this GitHub repository.
+**Recommended image specs:**
+- Before/after images: 800x600px, PNG format
+- Favicon: 32x32px, ICO format
+- Optimize images for web (use tools like TinyPNG)
+
+### Adding Demo GIF
+
+1. Create a short GIF showing the extension in action
+2. Add it to `/assets/img/demo.gif`
+3. Include it in the "How It Works" section:
+
+```html
+<div class="demo-gif">
+    <img src="/assets/img/demo.gif" alt="GitHub Absolute Dates extension demo" loading="lazy">
+</div>
+```
+
+## 📊 SEO Features
+
+- ✅ Semantic HTML structure
+- ✅ Meta tags optimized for target keywords
+- ✅ Open Graph and Twitter Card tags
+- ✅ JSON-LD structured data
+- ✅ Mobile-first responsive design
+- ✅ Fast loading (Core Web Vitals optimized)
+- ✅ Accessible markup
+- ✅ Clean URL structure
+- ✅ XML sitemap
+- ✅ Robots.txt
+
+## 🎯 Target Keywords
+
+- GitHub absolute dates extension
+- GitHub exact timestamps
+- Chrome extension GitHub time format
+- GitHub relative time converter
+- GitHub timestamp extension
+
+## 📈 Analytics & Tracking
+
+The site includes basic CTA click tracking via console.log. To add analytics:
+
+1. **Google Analytics 4**: Add GA4 tracking code to `<head>`
+2. **Google Tag Manager**: Add GTM container code
+3. **Custom Analytics**: Modify `trackCTAClick()` function in `main.js`
+
+## 🔒 Privacy & Performance
+
+- No external tracking by default
+- No external fonts or CDNs
+- Minimal JavaScript
+- System font stack
+- Lazy loading for images
+- Respects `prefers-reduced-motion`
+- High contrast mode support
+
+## 🧪 A/B Testing
+
+The HTML includes commented A/B testing variants:
+
+```html
+<!-- 
+<h1>Transform GitHub timestamps with absolute dates</h1>
+<p class="hero-subtitle">See exact timestamps instead of relative time...</p>
+-->
+```
+
+Uncomment different variants to test different messaging.
+
+## 🚀 Performance Checklist
+
+- [ ] Images optimized and compressed
+- [ ] CSS minified (optional)
+- [ ] JavaScript minified (optional)
+- [ ] Gzip compression enabled on server
+- [ ] HTTPS enabled
+- [ ] CDN configured (optional)
+- [ ] Lighthouse score > 90
+
+## 📝 License
+
+MIT License - see LICENSE file for details.
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test locally
+5. Submit a pull request
+
+## 📞 Support
+
+- GitHub Issues: [Create an issue](https://github.com/your-username/your-repo/issues)
+- Chrome Web Store: [Extension page](https://chromewebstore.google.com/detail/your-extension-id)
+
+---
+
+**Not affiliated with GitHub.** This is an independent Chrome extension.

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Absolute Dates Extension — Show Exact Timestamps on GitHub (Chrome)</title>
+    <meta name="description" content="Replace '2 days ago' with full dates on GitHub. Chrome extension shows exact timestamps for better clarity and auditability.">
+    <meta name="keywords" content="GitHub absolute dates, GitHub exact timestamps, Chrome extension GitHub time format, GitHub timestamps">
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://github-absolute-dates.com/">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="GitHub Absolute Dates Extension — Show Exact Timestamps on GitHub">
+    <meta property="og:description" content="Replace '2 days ago' with full dates on GitHub. Chrome extension shows exact timestamps for better clarity and auditability.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://github-absolute-dates.com/">
+    <meta property="og:image" content="https://github-absolute-dates.com/assets/img/after.png">
+    <meta property="og:site_name" content="GitHub Absolute Dates">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="GitHub Absolute Dates Extension — Show Exact Timestamps on GitHub">
+    <meta name="twitter:description" content="Replace '2 days ago' with full dates on GitHub. Chrome extension shows exact timestamps for better clarity and auditability.">
+    <meta name="twitter:image" content="https://github-absolute-dates.com/assets/img/after.png">
+    
+    <!-- Language and Internationalization -->
+    <meta name="language" content="en">
+    <link rel="alternate" hreflang="en" href="https://github-absolute-dates.com/">
+    <link rel="alternate" hreflang="de" href="https://github-absolute-dates.com/de/">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="/assets/css/styles.css">
+    
+    <!-- JSON-LD Schema -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        "name": "GitHub Absolute Dates Extension",
+        "description": "Chrome extension that replaces relative GitHub timestamps like '2 days ago' with absolute dates and times for better clarity and auditability.",
+        "applicationCategory": "BrowserExtension",
+        "operatingSystem": "Chrome",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "sameAs": "https://github.com/pkid/github-absolute-time-chrome-plugin",
+        "downloadUrl": "https://chromewebstore.google.com/detail/github-absolute-dates-plu/fmceohllpeampmclkldblmkhippchgck",
+        "image": "https://github-absolute-dates.com/assets/img/after.png",
+        "author": {
+            "@type": "Organization",
+            "name": "GitHub Absolute Dates"
+        }
+    }
+    </script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <nav class="nav">
+            <div class="nav-container">
+                <a href="/" class="nav-logo">GitHub Absolute Dates</a>
+                <div class="nav-links">
+                    <a href="/" class="nav-link">Home</a>
+                    <a href="https://github.com/pkid/github-absolute-time-chrome-plugin" class="nav-link" target="_blank" rel="noopener">GitHub</a>
+                    <a href="#privacy" class="nav-link">Privacy</a>
+                    <a href="/de/" class="nav-link">DE</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>Show exact timestamps on GitHub</h1>
+            <p class="hero-subtitle">Replace confusing "2 days ago" with precise dates and times. Get GitHub absolute dates for better clarity and auditability.</p>
+            
+            <!-- Primary CTA -->
+            <a href="https://chromewebstore.google.com/detail/github-absolute-dates-plu/fmceohllpeampmclkldblmkhippchgck" 
+               class="cta-button primary" 
+               target="_blank" 
+               rel="noopener"
+               onclick="trackCTAClick('hero')">
+                Install from Chrome Web Store
+            </a>
+            
+            <!-- A/B Testing Variants (commented) -->
+            <!-- 
+            <h1>Transform GitHub timestamps with absolute dates</h1>
+            <p class="hero-subtitle">See exact timestamps instead of relative time. Perfect for GitHub exact timestamps and Chrome extension GitHub time format needs.</p>
+            -->
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="how-it-works">
+        <div class="container">
+            <h2>How GitHub Absolute Dates Works</h2>
+            <p>This Chrome extension automatically converts relative GitHub timestamps like "2 days ago" into absolute dates and times like "2024-09-14 16:25".</p>
+            
+            <div class="benefits">
+                <div class="benefit">
+                    <h3>📅 Clarity</h3>
+                    <p>See exact dates instead of guessing when events occurred</p>
+                </div>
+                <div class="benefit">
+                    <h3>🔍 Auditability</h3>
+                    <p>Perfect for compliance and detailed project tracking</p>
+                </div>
+                <div class="benefit">
+                    <h3>🌍 Time Zone Awareness</h3>
+                    <p>Displays times in your local timezone for better understanding</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Before/After Images -->
+    <section class="before-after">
+        <div class="container">
+            <h2>See the Difference</h2>
+            <div class="image-comparison">
+                <div class="before-image">
+                    <img src="/assets/img/before.png" 
+                         alt="GitHub relative time '2 days ago' vs absolute date 2024-09-14 16:25" 
+                         width="400" 
+                         height="300"
+                         loading="lazy">
+                    <p class="image-caption">Before: Confusing relative timestamps</p>
+                </div>
+                <div class="after-image">
+                    <img src="/assets/img/after.png" 
+                         alt="GitHub absolute date showing 2024-09-14 16:25 instead of 2 days ago" 
+                         width="400" 
+                         height="300"
+                         loading="lazy">
+                    <p class="image-caption">After: Clear absolute dates</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features -->
+    <section class="features">
+        <div class="container">
+            <h2>Features</h2>
+            <ul class="features-list">
+                <li>✅ <strong>Lightweight:</strong> Minimal performance impact</li>
+                <li>🔒 <strong>Privacy-friendly:</strong> No data collected or sent off-device</li>
+                <li>📋 <strong>Works everywhere:</strong> Pull requests, commits, issues, and more</li>
+                <li>⚡ <strong>Instant activation:</strong> No configuration required</li>
+                <li>🔄 <strong>Auto-updates:</strong> Stays current with GitHub changes</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- Secondary CTA -->
+    <section class="cta-section">
+        <div class="container">
+            <h2>Ready to see exact timestamps?</h2>
+            <p>Join thousands of developers who prefer GitHub absolute dates over relative time.</p>
+            <a href="https://chromewebstore.google.com/detail/github-absolute-dates-plu/fmceohllpeampmclkldblmkhippchgck" 
+               class="cta-button secondary" 
+               target="_blank" 
+               rel="noopener"
+               onclick="trackCTAClick('mid-page')">
+                Install from Chrome Web Store
+            </a>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="faq">
+        <div class="container">
+            <h2>Frequently Asked Questions</h2>
+            
+            <details class="faq-item">
+                <summary>How to show exact timestamps on GitHub?</summary>
+                <p>Simply install the GitHub Absolute Dates Chrome extension and it will automatically replace relative timestamps with absolute dates on all GitHub pages. No configuration needed!</p>
+            </details>
+            
+            <details class="faq-item">
+                <summary>Does it affect performance?</summary>
+                <p>No, the extension is lightweight and has minimal performance impact. It only processes timestamps that are already visible on the page.</p>
+            </details>
+            
+            <details class="faq-item">
+                <summary>Is it safe and secure?</summary>
+                <p>Yes, the extension is completely safe. It only modifies the display of timestamps on GitHub pages and doesn't collect or transmit any data.</p>
+            </details>
+            
+            <details class="faq-item">
+                <summary>Will it work on private repositories?</summary>
+                <p>Yes, the extension works on all GitHub pages including private repositories, as long as you have access to view them.</p>
+            </details>
+            
+            <details class="faq-item">
+                <summary>Can I customize the date format?</summary>
+                <p>Currently, the extension uses a standard format, but we're working on customization options for future releases.</p>
+            </details>
+        </div>
+    </section>
+
+    <!-- Changelog -->
+    <section class="changelog">
+        <div class="container">
+            <h2>Latest Updates</h2>
+            <p>Stay updated with the latest features and improvements.</p>
+            <a href="https://github.com/pkid/github-absolute-time-chrome-plugin/releases" 
+               class="changelog-link" 
+               target="_blank" 
+               rel="noopener">
+                View Changelog on GitHub →
+            </a>
+        </div>
+    </section>
+
+    <!-- Privacy Section -->
+    <section id="privacy" class="privacy">
+        <div class="container">
+            <h2>Privacy Policy</h2>
+            <div class="privacy-content">
+                <h3>No Tracking, No Data Collection</h3>
+                <p>The GitHub Absolute Dates extension respects your privacy completely:</p>
+                <ul>
+                    <li>✅ <strong>No tracking:</strong> We don't track your browsing or usage</li>
+                    <li>✅ <strong>No data collection:</strong> No personal information is collected</li>
+                    <li>✅ <strong>No external requests:</strong> All processing happens locally in your browser</li>
+                    <li>✅ <strong>Open source:</strong> You can review the code on GitHub</li>
+                </ul>
+                <p>The extension only modifies the display of timestamps on GitHub pages and doesn't communicate with any external servers.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="final-cta">
+        <div class="container">
+            <h2>Get GitHub Absolute Dates Now</h2>
+            <p>Transform your GitHub experience with precise timestamps.</p>
+            <a href="https://chromewebstore.google.com/detail/github-absolute-dates-plu/fmceohllpeampmclkldblmkhippchgck" 
+               class="cta-button primary" 
+               target="_blank" 
+               rel="noopener"
+               onclick="trackCTAClick('footer')">
+                Install from Chrome Web Store
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-links">
+                    <a href="/" class="footer-link">Home</a>
+                    <a href="https://github.com/pkid/github-absolute-time-chrome-plugin" class="footer-link" target="_blank" rel="noopener">GitHub Repository</a>
+                    <a href="#privacy" class="footer-link">Privacy</a>
+                </div>
+                <div class="footer-legal">
+                    <p>Not affiliated with GitHub.</p>
+                    <p>Licensed under <a href="https://github.com/pkid/github-absolute-time-chrome-plugin/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a>.</p>
+                    <p>&copy; <span id="current-year"></span> GitHub Absolute Dates</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="/assets/js/main.js"></script>
+</body>
+</html>
