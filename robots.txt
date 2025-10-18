@@ -2,7 +2,7 @@ User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://github-absolute-dates.com/sitemap.xml
+Sitemap: https://pkid.github.io/github-absolute-time-chrome-plugin/sitemap.xml
 
 # Crawl-delay for respectful crawling
 Crawl-delay: 1

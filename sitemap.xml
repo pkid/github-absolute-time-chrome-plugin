@@ -2,19 +2,19 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>https://github-absolute-dates.com/</loc>
+    <loc>https://pkid.github.io/github-absolute-time-chrome-plugin/</loc>
     <lastmod>2024-12-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://github-absolute-dates.com/"/>
-    <xhtml:link rel="alternate" hreflang="de" href="https://github-absolute-dates.com/de/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pkid.github.io/github-absolute-time-chrome-plugin/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://pkid.github.io/github-absolute-time-chrome-plugin/de/"/>
   </url>
   <url>
-    <loc>https://github-absolute-dates.com/de/</loc>
+    <loc>https://pkid.github.io/github-absolute-time-chrome-plugin/de/</loc>
     <lastmod>2024-12-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
-    <xhtml:link rel="alternate" hreflang="en" href="https://github-absolute-dates.com/"/>
-    <xhtml:link rel="alternate" hreflang="de" href="https://github-absolute-dates.com/de/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://pkid.github.io/github-absolute-time-chrome-plugin/"/>
+    <xhtml:link rel="alternate" hreflang="de" href="https://pkid.github.io/github-absolute-time-chrome-plugin/de/"/>
   </url>
 </urlset>

@@ -77,7 +77,7 @@ Visit `http://localhost:8000` to view the site.
 
 1. Add a `CNAME` file with your domain name:
    ```
-   github-absolute-dates.com
+   pkid.github.io/github-absolute-time-chrome-plugin
    ```
 
 2. Update DNS records to point to your hosting provider
