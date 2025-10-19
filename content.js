@@ -92,7 +92,7 @@ function formatDate(dateString) {
     hour12: hour12
   });
 
-  return `${datePart}, ${timePart}`;
+  return `${datePart} ${timePart}`;
 }
 
 function convertElement(element) {
