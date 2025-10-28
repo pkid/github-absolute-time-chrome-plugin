@@ -3,23 +3,27 @@ document.addEventListener('DOMContentLoaded', function() {
     const status = document.getElementById('status');
     const timeFormatRadios = document.querySelectorAll('input[name="timeFormat"]');
     const colorByDayCheckbox = document.getElementById('colorByDay');
+    const boldTimestampsCheckbox = document.getElementById('boldTimestamps');
     
     // Load saved settings
-    chrome.storage.sync.get(['timeFormat', 'colorByDay'], function(result) {
+    chrome.storage.sync.get(['timeFormat', 'colorByDay', 'boldTimestamps'], function(result) {
         const savedFormat = result.timeFormat || 'auto';
         document.getElementById(`format-${savedFormat}`).checked = true;
         colorByDayCheckbox.checked = Boolean(result.colorByDay);
+        boldTimestampsCheckbox.checked = Boolean(result.boldTimestamps);
     });
     
     // Handle save button click
     saveButton.addEventListener('click', function() {
         const selectedFormat = document.querySelector('input[name="timeFormat"]:checked').value;
         const colorByDay = colorByDayCheckbox.checked;
+        const boldTimestamps = boldTimestampsCheckbox.checked;
         
         // Save to chrome storage
         chrome.storage.sync.set({
             timeFormat: selectedFormat,
-            colorByDay: colorByDay
+            colorByDay: colorByDay,
+            boldTimestamps: boldTimestamps
         }, function() {
             if (chrome.runtime.lastError) {
                 showStatus('Error saving settings', 'error');
@@ -32,7 +36,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         chrome.tabs.sendMessage(tabs[0].id, {
                             action: 'updateSettings',
                             timeFormat: selectedFormat,
-                            colorByDay: colorByDay
+                            colorByDay: colorByDay,
+                            boldTimestamps: boldTimestamps
                         });
                     }
                 });
@@ -58,6 +63,10 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     colorByDayCheckbox.addEventListener('change', function() {
+        saveButton.disabled = false;
+    });
+
+    boldTimestampsCheckbox.addEventListener('change', function() {
         saveButton.disabled = false;
     });
 });
