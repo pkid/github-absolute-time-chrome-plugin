@@ -2,20 +2,24 @@ document.addEventListener('DOMContentLoaded', function() {
     const saveButton = document.getElementById('saveButton');
     const status = document.getElementById('status');
     const timeFormatRadios = document.querySelectorAll('input[name="timeFormat"]');
+    const colorByDayCheckbox = document.getElementById('colorByDay');
     
     // Load saved settings
-    chrome.storage.sync.get(['timeFormat'], function(result) {
+    chrome.storage.sync.get(['timeFormat', 'colorByDay'], function(result) {
         const savedFormat = result.timeFormat || 'auto';
         document.getElementById(`format-${savedFormat}`).checked = true;
+        colorByDayCheckbox.checked = Boolean(result.colorByDay);
     });
     
     // Handle save button click
     saveButton.addEventListener('click', function() {
         const selectedFormat = document.querySelector('input[name="timeFormat"]:checked').value;
+        const colorByDay = colorByDayCheckbox.checked;
         
         // Save to chrome storage
         chrome.storage.sync.set({
-            timeFormat: selectedFormat
+            timeFormat: selectedFormat,
+            colorByDay: colorByDay
         }, function() {
             if (chrome.runtime.lastError) {
                 showStatus('Error saving settings', 'error');
@@ -26,8 +30,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
                     if (tabs[0] && tabs[0].url && tabs[0].url.includes('github.com')) {
                         chrome.tabs.sendMessage(tabs[0].id, {
-                            action: 'updateTimeFormat',
-                            timeFormat: selectedFormat
+                            action: 'updateSettings',
+                            timeFormat: selectedFormat,
+                            colorByDay: colorByDay
                         });
                     }
                 });
@@ -50,5 +55,9 @@ document.addEventListener('DOMContentLoaded', function() {
         radio.addEventListener('change', function() {
             saveButton.disabled = false;
         });
+    });
+
+    colorByDayCheckbox.addEventListener('change', function() {
+        saveButton.disabled = false;
     });
 });

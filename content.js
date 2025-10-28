@@ -46,22 +46,55 @@ function debounce(func, wait) {
 // Keep track of processed elements to avoid duplicates
 const processedElements = new WeakSet();
 
-// Default time format setting
+// Default settings
 let timeFormatSetting = 'auto';
+let colorByDaySetting = false;
 
-// Load time format setting from storage
-chrome.storage.sync.get(['timeFormat'], function(result) {
+// Load settings from storage
+chrome.storage.sync.get(['timeFormat', 'colorByDay'], function(result) {
   timeFormatSetting = result.timeFormat || 'auto';
+  colorByDaySetting = Boolean(result.colorByDay);
 });
 
 // Listen for messages from popup
-chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-  if (request.action === 'updateTimeFormat') {
-    timeFormatSetting = request.timeFormat;
-    // Re-convert all elements with new format
+chrome.runtime.onMessage.addListener(function(request) {
+  if (request.action === 'updateSettings') {
+    if (typeof request.timeFormat !== 'undefined') {
+      timeFormatSetting = request.timeFormat;
+    }
+    if (typeof request.colorByDay !== 'undefined') {
+      colorByDaySetting = Boolean(request.colorByDay);
+    }
     convertToAbsoluteTime();
   }
 });
+
+// Color palette for day-grouping (accessible, distinct)
+const dayColors = [
+  '#1f6feb', // blue
+  '#2da44e', // green
+  '#bf3989', // magenta
+  '#9a6700', // mustard
+  '#8957e5', // purple
+  '#bc4c00', // orange
+  '#0969da'  // dark blue
+];
+
+function getDayKey(dateString) {
+  const d = new Date(dateString);
+  return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+}
+
+function getColorForDay(dayKey) {
+  // Simple hash for stable color assignment
+  let hash = 0;
+  for (let i = 0; i < dayKey.length; i++) {
+    hash = ((hash << 5) - hash) + dayKey.charCodeAt(i);
+    hash |= 0;
+  }
+  const idx = Math.abs(hash) % dayColors.length;
+  return dayColors[idx];
+}
 
 function formatDate(dateString) {
   const date = new Date(dateString);
@@ -111,6 +144,15 @@ function convertElement(element) {
   
   // Set the content to absolute format
   shadowRoot.textContent = formattedDate;
+
+  // Apply optional day color
+  if (colorByDaySetting) {
+    const dayKey = getDayKey(title);
+    const color = getColorForDay(dayKey);
+    element.style.color = color;
+  } else {
+    element.style.color = '';
+  }
   
   // Watch for changes to this specific element and revert them
   if (!element._absoluteTimeObserver) {
