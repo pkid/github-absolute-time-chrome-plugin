@@ -49,13 +49,11 @@ const processedElements = new WeakSet();
 // Default settings
 let timeFormatSetting = 'auto';
 let colorByDaySetting = false;
-let boldTimestampsSetting = false;
 
 // Load settings from storage
-chrome.storage.sync.get(['timeFormat', 'colorByDay', 'boldTimestamps'], function(result) {
+chrome.storage.sync.get(['timeFormat', 'colorByDay'], function(result) {
   timeFormatSetting = result.timeFormat || 'auto';
   colorByDaySetting = Boolean(result.colorByDay);
-  boldTimestampsSetting = Boolean(result.boldTimestamps);
 });
 
 // Listen for messages from popup
@@ -66,9 +64,6 @@ chrome.runtime.onMessage.addListener(function(request) {
     }
     if (typeof request.colorByDay !== 'undefined') {
       colorByDaySetting = Boolean(request.colorByDay);
-    }
-    if (typeof request.boldTimestamps !== 'undefined') {
-      boldTimestampsSetting = Boolean(request.boldTimestamps);
     }
     convertToAbsoluteTime();
   }
@@ -158,9 +153,6 @@ function convertElement(element) {
   } else {
     element.style.color = '';
   }
-
-  // Apply optional bold style
-  element.style.fontWeight = boldTimestampsSetting ? '600' : '';
   
   // Watch for changes to this specific element and revert them
   if (!element._absoluteTimeObserver) {
