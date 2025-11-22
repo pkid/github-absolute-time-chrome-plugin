@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Format Testing - GitHub Absolute Time</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #24292f;
+        }
+
+        .test-section {
+            margin-bottom: 30px;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            padding: 16px;
+        }
+
+        .test-section h2 {
+            margin-top: 0;
+            color: #0969da;
+            font-size: 18px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th,
+        td {
+            padding: 8px 12px;
+            text-align: left;
+            border: 1px solid #d0d7de;
+        }
+
+        th {
+            background-color: #f6f8fa;
+            font-weight: 600;
+        }
+
+        .pass {
+            color: #1a7f37;
+            font-weight: 600;
+        }
+
+        .fail {
+            color: #cf222e;
+            font-weight: 600;
+        }
+
+        .result {
+            font-family: monospace;
+            background-color: #f6f8fa;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+
+        .expected {
+            color: #656d76;
+            font-size: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>GitHub Absolute Time - Format Testing</h1>
+
+    <div class="test-section">
+        <h2>Test Configuration</h2>
+        <p><strong>Test Date:</strong> <span id="testDate"></span></p>
+        <p><strong>Locale:</strong> <span id="locale"></span></p>
+    </div>
+
+    <div class="test-section">
+        <h2>Date Format Tests (12-hour time)</h2>
+        <table id="dateFormatTests">
+            <thead>
+                <tr>
+                    <th>Format</th>
+                    <th>Expected Pattern</th>
+                    <th>Result</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <div class="test-section">
+        <h2>Time Format Tests (YY-MM-DD date)</h2>
+        <table id="timeFormatTests">
+            <thead>
+                <tr>
+                    <th>Time Format</th>
+                    <th>Expected Pattern</th>
+                    <th>Result</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <div class="test-section">
+        <h2>Edge Cases</h2>
+        <table id="edgeCaseTests">
+            <thead>
+                <tr>
+                    <th>Test Case</th>
+                    <th>Expected Pattern</th>
+                    <th>Result</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <div class="test-section">
+        <h2>Character Length Tests (GitHub UI Space Constraints)</h2>
+        <table id="lengthTests">
+            <thead>
+                <tr>
+                    <th>Format Combination</th>
+                    <th>Result</th>
+                    <th>Length</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <script>
+        // Copy the formatDate function from content.js
+        function formatDate(dateString, dateFormatSetting, timeFormatSetting) {
+            const date = new Date(dateString);
+            const locale = navigator.language;
+
+            // Format the date part based on user preference
+            let datePart;
+            if (!dateFormatSetting || dateFormatSetting === 'auto') {
+                // Auto mode - use locale-based formatting
+                datePart = date.toLocaleDateString(locale, {
+                    year: '2-digit',
+                    month: 'numeric',
+                    day: 'numeric'
+                });
+            } else {
+                // Custom format - parse the user's pattern
+                const year = date.getFullYear();
+                const month = date.getMonth() + 1;
+                const day = date.getDate();
+
+                // Replace format tokens with actual values
+                datePart = dateFormatSetting
+                    .replace(/YYYY/g, year)
+                    .replace(/YY/g, String(year).slice(-2))
+                    .replace(/MM/g, String(month).padStart(2, '0'))
+                    .replace(/M/g, month)
+                    .replace(/DD/g, String(day).padStart(2, '0'))
+                    .replace(/D/g, day);
+            }
+
+            // Determine hour12 setting based on user preference
+            let hour12;
+            if (timeFormatSetting === '12h') {
+                hour12 = true;
+            } else if (timeFormatSetting === '24h') {
+                hour12 = false;
+            } else {
+                // Auto mode - use locale-based detection
+                hour12 = locale.startsWith('en');
+            }
+
+            // Format the time part based on user preference
+            let timePart;
+            if (hour12) {
+                // Manually format 12-hour time to ensure NO space before AM/PM
+                const hours = date.getHours() % 12 || 12;
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                const ampm = date.getHours() >= 12 ? 'PM' : 'AM';
+                timePart = `${hours}:${minutes}${ampm}`;
+            } else {
+                timePart = date.toLocaleTimeString(locale, {
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    hour12: false
+                });
+            }
+
+            return `${datePart} ${timePart}`;
+        }
+
+        // Test data
+        const testDate = '2024-09-14T16:25:00Z';
+        const testDateAM = '2024-09-14T09:30:00Z';
+        const testDateMidnight = '2024-09-14T00:00:00Z';
+        const testDateNoon = '2024-09-14T12:00:00Z';
+
+        document.getElementById('testDate').textContent = new Date(testDate).toISOString();
+        document.getElementById('locale').textContent = navigator.language;
+
+        // Date format tests
+        const dateFormatTests = [
+            { format: 'YY-MM-DD', pattern: /^\d{2}-\d{2}-\d{2} \d{1,2}:\d{2}(AM|PM)$/ },
+            { format: 'MM/DD/YY', pattern: /^\d{2}\/\d{2}\/\d{2} \d{1,2}:\d{2}(AM|PM)$/ },
+            { format: 'DD/MM/YY', pattern: /^\d{2}\/\d{2}\/\d{2} \d{1,2}:\d{2}(AM|PM)$/ },
+            { format: 'DD.MM.YY', pattern: /^\d{2}\.\d{2}\.\d{2} \d{1,2}:\d{2}(AM|PM)$/ },
+            { format: 'M/D/YY', pattern: /^\d{1,2}\/\d{1,2}\/\d{2} \d{1,2}:\d{2}(AM|PM)$/ },
+            { format: 'auto', pattern: /^.+ \d{1,2}:\d{2}(AM|PM)$/ }
+        ];
+
+        const dateTableBody = document.querySelector('#dateFormatTests tbody');
+        dateFormatTests.forEach(test => {
+            const result = formatDate(testDate, test.format, '12h');
+            const pass = test.pattern.test(result);
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><code>${test.format}</code></td>
+                <td class="expected">${test.pattern.toString()}</td>
+                <td class="result">${result}</td>
+                <td class="${pass ? 'pass' : 'fail'}">${pass ? '✓ PASS' : '✗ FAIL'}</td>
+            `;
+            dateTableBody.appendChild(row);
+        });
+
+        // Time format tests
+        const timeFormatTests = [
+            { format: '12h', dateFormat: 'YY-MM-DD', pattern: /^\d{2}-\d{2}-\d{2} \d{1,2}:\d{2}(AM|PM)$/, noSpace: true },
+            { format: '24h', dateFormat: 'YY-MM-DD', pattern: /^\d{2}-\d{2}-\d{2} \d{1,2}:\d{2}$/, noSpace: false },
+            { format: 'auto', dateFormat: 'YY-MM-DD', pattern: /^\d{2}-\d{2}-\d{2} \d{1,2}:\d{2}/, noSpace: null }
+        ];
+
+        const timeTableBody = document.querySelector('#timeFormatTests tbody');
+        timeFormatTests.forEach(test => {
+            const result = formatDate(testDate, test.dateFormat, test.format);
+            const pass = test.pattern.test(result);
+            const spaceCheck = test.noSpace !== null ? (test.noSpace ? !result.includes(' AM') && !result.includes(' PM') : true) : true;
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><code>${test.format}</code></td>
+                <td class="expected">${test.pattern.toString()}</td>
+                <td class="result">${result}</td>
+                <td class="${pass && spaceCheck ? 'pass' : 'fail'}">${pass && spaceCheck ? '✓ PASS' : '✗ FAIL'}</td>
+            `;
+            timeTableBody.appendChild(row);
+        });
+
+        // Edge case tests
+        const edgeCases = [
+            { name: 'Midnight (12:00 AM) - format check', date: testDateMidnight, format: 'YY-MM-DD', time: '12h', expected: /^\d{2}-\d{2}-\d{2} \d{1,2}:\d{2}(AM|PM)$/ },
+            { name: 'Noon (12:00 PM) - format check', date: testDateNoon, format: 'YY-MM-DD', time: '12h', expected: /^\d{2}-\d{2}-\d{2} \d{1,2}:\d{2}(AM|PM)$/ },
+            { name: 'Morning time', date: testDateAM, format: 'YY-MM-DD', time: '12h', expected: /^\d{2}-\d{2}-\d{2} \d{1,2}:\d{2}(AM|PM)$/ },
+            { name: 'Afternoon time', date: testDate, format: 'YY-MM-DD', time: '12h', expected: /^\d{2}-\d{2}-\d{2} \d{1,2}:\d{2}(AM|PM)$/ },
+            { name: 'No space before AM/PM', date: testDate, format: 'YY-MM-DD', time: '12h', expected: /^\d{2}-\d{2}-\d{2} \d{1,2}:\d{2}(AM|PM)$/ }
+        ];
+
+        const edgeTableBody = document.querySelector('#edgeCaseTests tbody');
+        edgeCases.forEach(test => {
+            const result = formatDate(test.date, test.format, test.time);
+            const pass = test.expected.test(result);
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${test.name}</td>
+                <td class="expected">${test.expected.toString()}</td>
+                <td class="result">${result}</td>
+                <td class="${pass ? 'pass' : 'fail'}">${pass ? '✓ PASS' : '✗ FAIL'}</td>
+            `;
+            edgeTableBody.appendChild(row);
+        });
+
+        // Length tests (max recommended: 18-20 chars for GitHub UI)
+        const lengthTests = [
+            { format: 'YY-MM-DD', time: '12h', maxLength: 18 },
+            { format: 'MM/DD/YY', time: '12h', maxLength: 18 },
+            { format: 'DD.MM.YY', time: '12h', maxLength: 18 },
+            { format: 'YY-MM-DD', time: '24h', maxLength: 17 },
+            { format: 'M/D/YY', time: '12h', maxLength: 16 }
+        ];
+
+        const lengthTableBody = document.querySelector('#lengthTests tbody');
+        lengthTests.forEach(test => {
+            const result = formatDate(testDate, test.format, test.time);
+            const length = result.length;
+            const pass = length <= test.maxLength;
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><code>${test.format}</code> + <code>${test.time}</code></td>
+                <td class="result">${result}</td>
+                <td>${length} chars</td>
+                <td class="${pass ? 'pass' : 'fail'}">${pass ? `✓ PASS (≤${test.maxLength})` : `✗ FAIL (>${test.maxLength})`}</td>
+            `;
+            lengthTableBody.appendChild(row);
+        });
+    </script>
+</body>
+
+</html>

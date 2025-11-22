@@ -1,19 +1,19 @@
 function waitForElement(selector) {
   return new Promise(resolve => {
     if (document.querySelector(selector)) {
-        return resolve(document.querySelector(selector));
+      return resolve(document.querySelector(selector));
     }
 
     const observer = new MutationObserver(() => {
-        if (document.querySelector(selector)) {
-            observer.disconnect();
-            resolve(document.querySelector(selector));
-        }
+      if (document.querySelector(selector)) {
+        observer.disconnect();
+        resolve(document.querySelector(selector));
+      }
     });
 
     observer.observe(document.body, {
-        childList: true,
-        subtree: true
+      childList: true,
+      subtree: true
     });
   });
 }
@@ -21,7 +21,7 @@ function waitForElement(selector) {
 // Add throttling utility
 function throttle(func, limit) {
   let inThrottle;
-  return function(...args) {
+  return function (...args) {
     if (!inThrottle) {
       func.apply(this, args);
       inThrottle = true;
@@ -49,21 +49,26 @@ const processedElements = new WeakSet();
 // Default settings
 let timeFormatSetting = 'auto';
 let colorByDaySetting = false;
+let dateFormatSetting = 'auto';
 
 // Load settings from storage
-chrome.storage.sync.get(['timeFormat', 'colorByDay'], function(result) {
+chrome.storage.sync.get(['timeFormat', 'colorByDay', 'dateFormat'], function (result) {
   timeFormatSetting = result.timeFormat || 'auto';
   colorByDaySetting = Boolean(result.colorByDay);
+  dateFormatSetting = result.dateFormat !== undefined ? result.dateFormat : 'auto';
 });
 
 // Listen for messages from popup
-chrome.runtime.onMessage.addListener(function(request) {
+chrome.runtime.onMessage.addListener(function (request) {
   if (request.action === 'updateSettings') {
     if (typeof request.timeFormat !== 'undefined') {
       timeFormatSetting = request.timeFormat;
     }
     if (typeof request.colorByDay !== 'undefined') {
       colorByDaySetting = Boolean(request.colorByDay);
+    }
+    if (typeof request.dateFormat !== 'undefined') {
+      dateFormatSetting = request.dateFormat;
     }
     convertToAbsoluteTime();
   }
@@ -82,7 +87,7 @@ const dayColors = [
 
 function getDayKey(dateString) {
   const d = new Date(dateString);
-  return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+  return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
 }
 
 function getColorForDay(dayKey) {
@@ -100,12 +105,30 @@ function formatDate(dateString) {
   const date = new Date(dateString);
   const locale = navigator.language;
 
-  // Format the date part based on locale
-  const datePart = date.toLocaleDateString(locale, {
-    year: '2-digit',
-    month: 'numeric',
-    day: 'numeric'
-  });
+  // Format the date part based on user preference
+  let datePart;
+  if (!dateFormatSetting || dateFormatSetting === 'auto') {
+    // Auto mode - use locale-based formatting
+    datePart = date.toLocaleDateString(locale, {
+      year: '2-digit',
+      month: 'numeric',
+      day: 'numeric'
+    });
+  } else {
+    // Custom format - parse the user's pattern
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+
+    // Replace format tokens with actual values
+    datePart = dateFormatSetting
+      .replace(/YYYY/g, year)
+      .replace(/YY/g, String(year).slice(-2))
+      .replace(/MM/g, String(month).padStart(2, '0'))
+      .replace(/M/g, month)
+      .replace(/DD/g, String(day).padStart(2, '0'))
+      .replace(/D/g, day);
+  }
 
   // Determine hour12 setting based on user preference
   let hour12;
@@ -119,11 +142,20 @@ function formatDate(dateString) {
   }
 
   // Format the time part based on user preference
-  const timePart = date.toLocaleTimeString(locale, {
-    hour: 'numeric',
-    minute: 'numeric',
-    hour12: hour12
-  });
+  let timePart;
+  if (hour12) {
+    // Manually format 12-hour time to ensure NO space before AM/PM
+    const hours = date.getHours() % 12 || 12;
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const ampm = date.getHours() >= 12 ? 'PM' : 'AM';
+    timePart = `${hours}:${minutes}${ampm}`;
+  } else {
+    timePart = date.toLocaleTimeString(locale, {
+      hour: 'numeric',
+      minute: 'numeric',
+      hour12: false
+    });
+  }
 
   return `${datePart} ${timePart}`;
 }
@@ -133,15 +165,15 @@ function convertElement(element) {
   if (location.pathname.includes('/actions/runs/')) {
     return;
   }
-  
+
   const shadowRoot = element.shadowRoot;
   if (!shadowRoot) return;
-  
+
   const title = element.getAttribute('title');
   if (!title) return;
-  
+
   const formattedDate = formatDate(title);
-  
+
   // Set the content to absolute format
   shadowRoot.textContent = formattedDate;
 
@@ -153,7 +185,7 @@ function convertElement(element) {
   } else {
     element.style.color = '';
   }
-  
+
   // Watch for changes to this specific element and revert them
   if (!element._absoluteTimeObserver) {
     element._absoluteTimeObserver = new MutationObserver(() => {
@@ -161,7 +193,7 @@ function convertElement(element) {
         shadowRoot.textContent = formattedDate;
       }
     });
-    
+
     element._absoluteTimeObserver.observe(shadowRoot, {
       childList: true,
       characterData: true,
@@ -175,7 +207,7 @@ function convertToAbsoluteTime() {
   if (location.pathname.includes('/actions/runs/')) {
     return;
   }
-  
+
   const relativeTimeElements = document.querySelectorAll('relative-time');
   relativeTimeElements.forEach(convertElement);
 }
