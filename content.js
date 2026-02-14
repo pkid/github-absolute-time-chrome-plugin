@@ -281,10 +281,43 @@ function applyRowHighlight(rowTarget, level) {
 }
 
 function removeStalenessBadge(element) {
-  if (element._stalenessBadge && element._stalenessBadge.isConnected) {
-    element._stalenessBadge.remove();
+  let sibling = element.nextElementSibling;
+  while (sibling && sibling.getAttribute('data-gh-abs-stale-badge') === 'true') {
+    const next = sibling.nextElementSibling;
+    sibling.remove();
+    sibling = next;
   }
   element._stalenessBadge = null;
+}
+
+function getOrCreateStalenessBadge(element) {
+  const connectedBadge = element._stalenessBadge;
+  if (connectedBadge && connectedBadge.isConnected) {
+    return connectedBadge;
+  }
+
+  const adjacentBadges = [];
+  let sibling = element.nextElementSibling;
+  while (sibling && sibling.getAttribute('data-gh-abs-stale-badge') === 'true') {
+    adjacentBadges.push(sibling);
+    sibling = sibling.nextElementSibling;
+  }
+
+  if (adjacentBadges.length > 0) {
+    const badge = adjacentBadges[0];
+    for (let i = 1; i < adjacentBadges.length; i++) {
+      adjacentBadges[i].remove();
+    }
+    element._stalenessBadge = badge;
+    return badge;
+  }
+
+  const badge = document.createElement('span');
+  badge.className = 'gh-abs-stale-badge';
+  badge.setAttribute('data-gh-abs-stale-badge', 'true');
+  element.insertAdjacentElement('afterend', badge);
+  element._stalenessBadge = badge;
+  return badge;
 }
 
 function applyStalenessBadge(element, level, ageDays) {
@@ -293,14 +326,7 @@ function applyStalenessBadge(element, level, ageDays) {
     return;
   }
 
-  let badge = element._stalenessBadge;
-  if (!badge || !badge.isConnected) {
-    badge = document.createElement('span');
-    badge.className = 'gh-abs-stale-badge';
-    badge.setAttribute('data-gh-abs-stale-badge', 'true');
-    element.insertAdjacentElement('afterend', badge);
-    element._stalenessBadge = badge;
-  }
+  const badge = getOrCreateStalenessBadge(element);
 
   badge.classList.remove(STALE_BADGE_WARNING_CLASS, STALE_BADGE_CRITICAL_CLASS);
   if (level === 'warning') {
