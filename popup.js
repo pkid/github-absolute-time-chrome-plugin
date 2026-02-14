@@ -4,50 +4,123 @@ document.addEventListener('DOMContentLoaded', function () {
     const timeFormatRadios = document.querySelectorAll('input[name="timeFormat"]');
     const colorByDayCheckbox = document.getElementById('colorByDay');
     const dateFormatInput = document.getElementById('dateFormat');
+    const stalenessEnabledCheckbox = document.getElementById('stalenessEnabled');
+    const stalenessWarnDaysInput = document.getElementById('stalenessWarnDays');
+    const stalenessCriticalDaysInput = document.getElementById('stalenessCriticalDays');
+    const showStalenessBadgesCheckbox = document.getElementById('showStalenessBadges');
+    const highlightStaleRowsCheckbox = document.getElementById('highlightStaleRows');
 
-    // Load saved settings
-    chrome.storage.sync.get(['timeFormat', 'colorByDay', 'dateFormat'], function (result) {
-        const savedFormat = result.timeFormat || 'auto';
-        document.getElementById(`format-${savedFormat}`).checked = true;
-        colorByDayCheckbox.checked = Boolean(result.colorByDay);
-        dateFormatInput.value = result.dateFormat || '';
+    const defaults = {
+        timeFormat: 'auto',
+        colorByDay: false,
+        dateFormat: 'auto',
+        stalenessEnabled: false,
+        stalenessWarnDays: 7,
+        stalenessCriticalDays: 14,
+        showStalenessBadges: true,
+        highlightStaleRows: true
+    };
+
+    function parsePositiveInt(value, fallback) {
+        const parsed = parseInt(value, 10);
+        if (!Number.isFinite(parsed) || parsed < 1) {
+            return fallback;
+        }
+        return parsed;
+    }
+
+    function isSupportedGitHubUrl(url) {
+        return url.includes('://github.com/')
+            || url.includes('://github.wdf.sap.corp/')
+            || url.includes('://github.tools.sap.corp/');
+    }
+
+    function updateStalenessControlState() {
+        const disabled = !stalenessEnabledCheckbox.checked;
+        stalenessWarnDaysInput.disabled = disabled;
+        stalenessCriticalDaysInput.disabled = disabled;
+        showStalenessBadgesCheckbox.disabled = disabled;
+        highlightStaleRowsCheckbox.disabled = disabled;
+    }
+
+    function markDirty() {
+        saveButton.disabled = false;
+    }
+
+    chrome.storage.sync.get(Object.keys(defaults), function (result) {
+        const settings = {
+            ...defaults,
+            ...result
+        };
+
+        const selectedFormat = settings.timeFormat || defaults.timeFormat;
+        const formatRadio = document.getElementById(`format-${selectedFormat}`);
+        if (formatRadio) {
+            formatRadio.checked = true;
+        } else {
+            document.getElementById(`format-${defaults.timeFormat}`).checked = true;
+        }
+
+        colorByDayCheckbox.checked = Boolean(settings.colorByDay);
+        dateFormatInput.value = settings.dateFormat && settings.dateFormat !== 'auto' ? settings.dateFormat : '';
+        stalenessEnabledCheckbox.checked = Boolean(settings.stalenessEnabled);
+        stalenessWarnDaysInput.value = parsePositiveInt(settings.stalenessWarnDays, defaults.stalenessWarnDays);
+        stalenessCriticalDaysInput.value = parsePositiveInt(settings.stalenessCriticalDays, defaults.stalenessCriticalDays);
+        showStalenessBadgesCheckbox.checked = Boolean(settings.showStalenessBadges);
+        highlightStaleRowsCheckbox.checked = Boolean(settings.highlightStaleRows);
+        updateStalenessControlState();
+        saveButton.disabled = true;
     });
 
-    // Handle save button click
     saveButton.addEventListener('click', function () {
-        const selectedFormat = document.querySelector('input[name="timeFormat"]:checked').value;
+        const selectedFormat = document.querySelector('input[name="timeFormat"]:checked')?.value || defaults.timeFormat;
         const colorByDay = colorByDayCheckbox.checked;
         const dateFormat = dateFormatInput.value.trim() || 'auto';
+        const stalenessWarnDays = parsePositiveInt(stalenessWarnDaysInput.value, defaults.stalenessWarnDays);
+        const stalenessCriticalDays = parsePositiveInt(stalenessCriticalDaysInput.value, defaults.stalenessCriticalDays);
 
-        // Validate that YYYY is not used (only YY is allowed)
         if (dateFormat !== 'auto' && dateFormat.includes('YYYY')) {
             showStatus('Please use YY (2-digit year) instead of YYYY', 'error');
             return;
         }
 
-        // Save to chrome storage
-        chrome.storage.sync.set({
+        if (stalenessCriticalDays <= stalenessWarnDays) {
+            showStatus('Critical days must be greater than warning days', 'error');
+            return;
+        }
+
+        const updatedSettings = {
             timeFormat: selectedFormat,
             colorByDay: colorByDay,
-            dateFormat: dateFormat
-        }, function () {
+            dateFormat: dateFormat,
+            stalenessEnabled: stalenessEnabledCheckbox.checked,
+            stalenessWarnDays: stalenessWarnDays,
+            stalenessCriticalDays: stalenessCriticalDays,
+            showStalenessBadges: showStalenessBadgesCheckbox.checked,
+            highlightStaleRows: highlightStaleRowsCheckbox.checked
+        };
+
+        chrome.storage.sync.set(updatedSettings, function () {
             if (chrome.runtime.lastError) {
                 showStatus('Error saving settings', 'error');
-            } else {
-                showStatus('Settings saved successfully!', 'success');
+                return;
+            }
 
-                // Notify ALL GitHub tabs to update (not just active, since popup is open)
-                chrome.tabs.query({ url: '*://github.com/*' }, function (tabs) {
-                    tabs.forEach(function (tab) {
-                        chrome.tabs.sendMessage(tab.id, {
-                            action: 'updateSettings',
-                            timeFormat: selectedFormat,
-                            colorByDay: colorByDay,
-                            dateFormat: dateFormat
-                        });
+            showStatus('Settings saved successfully!', 'success');
+            saveButton.disabled = true;
+
+            chrome.tabs.query({}, function (tabs) {
+                tabs.forEach(function (tab) {
+                    if (!tab.id || !tab.url || !isSupportedGitHubUrl(tab.url)) {
+                        return;
+                    }
+
+                    chrome.tabs.sendMessage(tab.id, {
+                        action: 'updateSettings',
+                        ...updatedSettings
                     });
                 });
-            }
+            });
         });
     });
 
@@ -61,18 +134,17 @@ document.addEventListener('DOMContentLoaded', function () {
         }, 3000);
     }
 
-    // Handle radio button changes
-    timeFormatRadios.forEach(radio => {
-        radio.addEventListener('change', function () {
-            saveButton.disabled = false;
-        });
+    timeFormatRadios.forEach((radio) => {
+        radio.addEventListener('change', markDirty);
     });
-
-    colorByDayCheckbox.addEventListener('change', function () {
-        saveButton.disabled = false;
+    colorByDayCheckbox.addEventListener('change', markDirty);
+    dateFormatInput.addEventListener('input', markDirty);
+    stalenessEnabledCheckbox.addEventListener('change', function () {
+        updateStalenessControlState();
+        markDirty();
     });
-
-    dateFormatInput.addEventListener('input', function () {
-        saveButton.disabled = false;
-    });
+    stalenessWarnDaysInput.addEventListener('input', markDirty);
+    stalenessCriticalDaysInput.addEventListener('input', markDirty);
+    showStalenessBadgesCheckbox.addEventListener('change', markDirty);
+    highlightStaleRowsCheckbox.addEventListener('change', markDirty);
 });
