@@ -6,7 +6,10 @@ const SETTINGS_DEFAULTS = {
   stalenessWarnDays: 7,
   stalenessCriticalDays: 14,
   showStalenessBadges: true,
-  highlightStaleRows: true
+  highlightStaleRows: true,
+  stalenessLeadRegistered: false,
+  stalenessLeadEmail: '',
+  stalenessLeadRegisteredAt: ''
 };
 
 const STALE_ROW_WARNING_CLASS = 'gh-abs-row-stale-warning';
@@ -67,7 +70,10 @@ function normalizeSettings(partialSettings) {
     stalenessWarnDays: parsePositiveInt(partialSettings.stalenessWarnDays, SETTINGS_DEFAULTS.stalenessWarnDays),
     stalenessCriticalDays: parsePositiveInt(partialSettings.stalenessCriticalDays, SETTINGS_DEFAULTS.stalenessCriticalDays),
     showStalenessBadges: Boolean(partialSettings.showStalenessBadges),
-    highlightStaleRows: Boolean(partialSettings.highlightStaleRows)
+    highlightStaleRows: Boolean(partialSettings.highlightStaleRows),
+    stalenessLeadRegistered: Boolean(partialSettings.stalenessLeadRegistered),
+    stalenessLeadEmail: partialSettings.stalenessLeadEmail || '',
+    stalenessLeadRegisteredAt: partialSettings.stalenessLeadRegisteredAt || ''
   };
 }
 
@@ -79,6 +85,10 @@ function applySettings(partialSettings, refresh) {
 
   if (settings.stalenessCriticalDays <= settings.stalenessWarnDays) {
     settings.stalenessCriticalDays = settings.stalenessWarnDays + 1;
+  }
+
+  if (!settings.stalenessLeadRegistered) {
+    settings.stalenessEnabled = false;
   }
 
   if (refresh) {
@@ -252,6 +262,10 @@ function getStalenessLevel(ageDays) {
   return 'fresh';
 }
 
+function isStalenessUnlocked() {
+  return Boolean(settings.stalenessLeadRegistered);
+}
+
 function getStaleRowTarget(element) {
   return element.closest('[data-testid="issue-row"], div[js-issue-row], li.Box-row, div.Box-row, tr.js-navigation-item, tr');
 }
@@ -354,7 +368,7 @@ function clearAllStalenessArtifacts() {
 }
 
 function applyStalenessDecorations(element, title) {
-  if (!settings.stalenessEnabled || !shouldShowStalenessOnCurrentPage()) {
+  if (!isStalenessUnlocked() || !settings.stalenessEnabled || !shouldShowStalenessOnCurrentPage()) {
     clearStalenessDecorations(element);
     return;
   }
@@ -432,7 +446,7 @@ function convertToAbsoluteTime() {
     return;
   }
 
-  if (!settings.stalenessEnabled || !shouldShowStalenessOnCurrentPage()) {
+  if (!isStalenessUnlocked() || !settings.stalenessEnabled || !shouldShowStalenessOnCurrentPage()) {
     clearAllStalenessArtifacts();
   }
 

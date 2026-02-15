@@ -178,6 +178,137 @@
             line-height: 1.4;
         }
 
+        .gate-card {
+            border: 1px solid #d8dee4;
+            border-radius: 6px;
+            padding: 8px;
+            background: #f6f8fa;
+        }
+
+        .gate-title {
+            margin: 0;
+            font-size: 12px;
+            font-weight: 600;
+            color: #24292f;
+        }
+
+        .gate-text {
+            margin: 4px 0 8px;
+            font-size: 11px;
+            color: #57606a;
+            line-height: 1.35;
+        }
+
+        .gate-input {
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid #d0d7de;
+            border-radius: 4px;
+            padding: 6px 8px;
+            font-size: 12px;
+            margin-bottom: 6px;
+            background: #ffffff;
+        }
+
+        .gate-input:focus {
+            border-color: #0969da;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.1);
+        }
+
+        .gate-button {
+            width: 100%;
+            border: 1px solid #1f6feb;
+            border-radius: 4px;
+            background: #1f6feb;
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 7px 8px;
+            cursor: pointer;
+        }
+
+        .gate-button:hover {
+            background: #1a62dc;
+        }
+
+        .gate-button:disabled {
+            border-color: #8c959f;
+            background: #8c959f;
+            cursor: not-allowed;
+        }
+
+        .gate-button.secondary {
+            margin-top: 6px;
+            background: #ffffff;
+            color: #1f6feb;
+            border-color: #1f6feb;
+        }
+
+        .gate-button.secondary:hover {
+            background: #f0f7ff;
+        }
+
+        .gate-status {
+            margin-top: 6px;
+            font-size: 11px;
+            line-height: 1.35;
+            display: none;
+        }
+
+        .gate-status.info {
+            color: #57606a;
+            display: block;
+        }
+
+        .gate-status.success {
+            color: #1a7f37;
+            display: block;
+        }
+
+        .gate-status.error {
+            color: #cf222e;
+            display: block;
+        }
+
+        .gate-meta {
+            margin-top: 6px;
+            font-size: 10px;
+            color: #656d76;
+            line-height: 1.4;
+        }
+
+        .registered-panel {
+            border: 1px solid #a2f0ba;
+            border-radius: 6px;
+            padding: 8px;
+            background: #edfff3;
+            display: none;
+        }
+
+        .registered-panel p {
+            margin: 0 0 6px;
+            font-size: 11px;
+            color: #0d1117;
+            line-height: 1.35;
+        }
+
+        .link-button {
+            border: none;
+            padding: 0;
+            background: transparent;
+            color: #0969da;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
+        .locked-note {
+            margin-top: 4px;
+            font-size: 10px;
+            color: #b54708;
+            display: none;
+        }
+
         .save-button {
             width: 100%;
             padding: 8px;
@@ -266,6 +397,21 @@
         </div>
     </div>
 
+    <div class="setting-group gate-card" id="registrationWall">
+        <p class="gate-title">Unlock Staleness Signals</p>
+        <p class="gate-text">Register with your email to enable staleness badges and highlights.</p>
+        <input type="email" id="leadEmail" class="gate-input" placeholder="you@company.com" autocomplete="email">
+        <button type="button" id="registerLeadButton" class="gate-button">Register & Unlock</button>
+        <button type="button" id="checkVerificationButton" class="gate-button secondary" style="display:none;">Check Verification Status</button>
+        <div class="gate-status" id="registerLeadStatus"></div>
+        <div class="gate-meta">We use this to contact interested users about Pro features and updates. Configure endpoint in <code>lead-config.js</code> and email provider in Worker secrets.</div>
+    </div>
+
+    <div class="setting-group registered-panel" id="registrationComplete">
+        <p>Staleness unlocked for <strong id="registeredEmail"></strong></p>
+        <button type="button" id="resetRegistrationButton" class="link-button">Reset registration</button>
+    </div>
+
     <div class="setting-group">
         <label class="setting-label">Staleness Signals</label>
         <div class="checkbox-option">
@@ -294,12 +440,14 @@
             Critical threshold must be greater than warning threshold.
             Staleness is never shown on repository code/file pages.
         </div>
+        <div class="locked-note" id="stalenessLockedNote">Register above to use staleness features.</div>
     </div>
 
-    <button class="save-button" id="saveButton">Save Settings</button>
+    <button type="button" class="save-button" id="saveButton">Save Settings</button>
 
     <div class="status" id="status"></div>
 
+    <script src="lead-config.js"></script>
     <script src="popup.js"></script>
 </body>
 

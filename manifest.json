@@ -11,6 +11,9 @@
     "permissions": [
         "storage"
     ],
+    "host_permissions": [
+        "https://*.workers.dev/*"
+    ],
     "action": {
         "default_popup": "popup.html",
         "default_title": "GitHub Absolute Time Settings"
