@@ -5,15 +5,11 @@ const SETTINGS_DEFAULTS = {
   stalenessEnabled: false,
   stalenessWarnDays: 7,
   stalenessCriticalDays: 14,
-  showStalenessBadges: true,
-  highlightStaleRows: true,
   stalenessLeadRegistered: false,
   stalenessLeadEmail: '',
   stalenessLeadRegisteredAt: ''
 };
 
-const STALE_ROW_WARNING_CLASS = 'gh-abs-row-stale-warning';
-const STALE_ROW_CRITICAL_CLASS = 'gh-abs-row-stale-critical';
 const STALE_BADGE_WARNING_CLASS = 'gh-abs-badge-warning';
 const STALE_BADGE_CRITICAL_CLASS = 'gh-abs-badge-critical';
 const STALENESS_ALLOWED_ROOT_ROUTES = new Set(['pulls', 'issues']);
@@ -69,8 +65,6 @@ function normalizeSettings(partialSettings) {
     stalenessEnabled: Boolean(partialSettings.stalenessEnabled),
     stalenessWarnDays: parsePositiveInt(partialSettings.stalenessWarnDays, SETTINGS_DEFAULTS.stalenessWarnDays),
     stalenessCriticalDays: parsePositiveInt(partialSettings.stalenessCriticalDays, SETTINGS_DEFAULTS.stalenessCriticalDays),
-    showStalenessBadges: Boolean(partialSettings.showStalenessBadges),
-    highlightStaleRows: Boolean(partialSettings.highlightStaleRows),
     stalenessLeadRegistered: Boolean(partialSettings.stalenessLeadRegistered),
     stalenessLeadEmail: partialSettings.stalenessLeadEmail || '',
     stalenessLeadRegisteredAt: partialSettings.stalenessLeadRegisteredAt || ''
@@ -156,16 +150,6 @@ function ensureStalenessStyles() {
       background: #ffebe9;
       border-color: #cf222e66;
       color: #cf222e;
-    }
-
-    .${STALE_ROW_WARNING_CLASS} {
-      box-shadow: inset 3px 0 0 rgba(157, 103, 0, 0.85);
-      background-image: linear-gradient(to right, rgba(255, 226, 155, 0.22), rgba(255, 226, 155, 0));
-    }
-
-    .${STALE_ROW_CRITICAL_CLASS} {
-      box-shadow: inset 3px 0 0 rgba(207, 34, 46, 0.9);
-      background-image: linear-gradient(to right, rgba(255, 192, 188, 0.26), rgba(255, 192, 188, 0));
     }
   `;
   document.head.appendChild(style);
@@ -266,34 +250,6 @@ function isStalenessUnlocked() {
   return Boolean(settings.stalenessLeadRegistered);
 }
 
-function getStaleRowTarget(element) {
-  return element.closest('[data-testid="issue-row"], div[js-issue-row], li.Box-row, div.Box-row, tr.js-navigation-item, tr');
-}
-
-function clearRowHighlight(rowTarget) {
-  if (!rowTarget) {
-    return;
-  }
-  rowTarget.classList.remove(STALE_ROW_WARNING_CLASS, STALE_ROW_CRITICAL_CLASS);
-}
-
-function applyRowHighlight(rowTarget, level) {
-  if (!rowTarget) {
-    return;
-  }
-
-  clearRowHighlight(rowTarget);
-  if (!settings.highlightStaleRows) {
-    return;
-  }
-
-  if (level === 'warning') {
-    rowTarget.classList.add(STALE_ROW_WARNING_CLASS);
-  } else if (level === 'critical') {
-    rowTarget.classList.add(STALE_ROW_CRITICAL_CLASS);
-  }
-}
-
 function removeStalenessBadge(element) {
   let sibling = element.nextElementSibling;
   while (sibling && sibling.getAttribute('data-gh-abs-stale-badge') === 'true') {
@@ -335,7 +291,7 @@ function getOrCreateStalenessBadge(element) {
 }
 
 function applyStalenessBadge(element, level, ageDays) {
-  if (!settings.showStalenessBadges || level === 'fresh') {
+  if (level === 'fresh') {
     removeStalenessBadge(element);
     return;
   }
@@ -354,7 +310,6 @@ function applyStalenessBadge(element, level, ageDays) {
 
 function clearStalenessDecorations(element) {
   removeStalenessBadge(element);
-  clearRowHighlight(getStaleRowTarget(element));
 }
 
 function clearAllStalenessArtifacts() {
@@ -362,8 +317,9 @@ function clearAllStalenessArtifacts() {
     badge.remove();
   });
 
-  document.querySelectorAll(`.${STALE_ROW_WARNING_CLASS}, .${STALE_ROW_CRITICAL_CLASS}`).forEach((row) => {
-    row.classList.remove(STALE_ROW_WARNING_CLASS, STALE_ROW_CRITICAL_CLASS);
+  // Cleanup legacy row classes from older versions that supported row highlighting.
+  document.querySelectorAll('.gh-abs-row-stale-warning, .gh-abs-row-stale-critical').forEach((row) => {
+    row.classList.remove('gh-abs-row-stale-warning', 'gh-abs-row-stale-critical');
   });
 }
 
@@ -381,7 +337,6 @@ function applyStalenessDecorations(element, title) {
 
   const level = getStalenessLevel(ageDays);
   applyStalenessBadge(element, level, ageDays);
-  applyRowHighlight(getStaleRowTarget(element), level);
 }
 
 function getOutputNode(element) {

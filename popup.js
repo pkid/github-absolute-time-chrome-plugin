@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const saveButton = document.getElementById('saveButton');
     const status = document.getElementById('status');
     const timeFormatRadios = document.querySelectorAll('input[name="timeFormat"]');
     const colorByDayCheckbox = document.getElementById('colorByDay');
@@ -7,8 +6,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const stalenessEnabledCheckbox = document.getElementById('stalenessEnabled');
     const stalenessWarnDaysInput = document.getElementById('stalenessWarnDays');
     const stalenessCriticalDaysInput = document.getElementById('stalenessCriticalDays');
-    const showStalenessBadgesCheckbox = document.getElementById('showStalenessBadges');
-    const highlightStaleRowsCheckbox = document.getElementById('highlightStaleRows');
     const registrationWall = document.getElementById('registrationWall');
     const registrationComplete = document.getElementById('registrationComplete');
     const leadEmailInput = document.getElementById('leadEmail');
@@ -18,17 +15,18 @@ document.addEventListener('DOMContentLoaded', function () {
     const registeredEmail = document.getElementById('registeredEmail');
     const resetRegistrationButton = document.getElementById('resetRegistrationButton');
     const stalenessLockedNote = document.getElementById('stalenessLockedNote');
+    const stalenessAdvancedOptions = document.getElementById('stalenessAdvancedOptions');
 
     const leadConfig = window.GHAT_LEAD_CONFIG || {};
     const leadApiBase = getLeadApiBase(typeof leadConfig.endpoint === 'string' ? leadConfig.endpoint.trim() : '');
     const requiredElements = [
-        ['saveButton', saveButton],
         ['status', status],
         ['leadEmail', leadEmailInput],
         ['registerLeadButton', registerLeadButton],
         ['checkVerificationButton', checkVerificationButton],
         ['registerLeadStatus', registerLeadStatus],
-        ['resetRegistrationButton', resetRegistrationButton]
+        ['resetRegistrationButton', resetRegistrationButton],
+        ['stalenessAdvancedOptions', stalenessAdvancedOptions]
     ];
     const missingElements = requiredElements.filter(([, element]) => !element).map(([id]) => id);
     if (missingElements.length > 0) {
@@ -48,8 +46,6 @@ document.addEventListener('DOMContentLoaded', function () {
         stalenessEnabled: false,
         stalenessWarnDays: 7,
         stalenessCriticalDays: 14,
-        showStalenessBadges: true,
-        highlightStaleRows: true,
         stalenessLeadRegistered: false,
         stalenessLeadEmail: '',
         stalenessLeadRegisteredAt: '',
@@ -64,6 +60,8 @@ document.addEventListener('DOMContentLoaded', function () {
         stalenessLeadVerificationPending: false,
         stalenessLeadStatusToken: ''
     };
+    let statusTimeoutId = null;
+    let autoSaveTimeoutId = null;
 
     function parsePositiveInt(value, fallback) {
         const parsed = parseInt(value, 10);
@@ -109,6 +107,18 @@ document.addEventListener('DOMContentLoaded', function () {
         if (error === 'forbidden_request_context') {
             return 'Request was blocked by API security checks. Please retry from the extension popup.';
         }
+        if (error === 'email_provider_not_configured') {
+            return 'Email verification backend is not configured yet.';
+        }
+        if (error.includes('domain is not verified')) {
+            return 'Sender domain is not verified in Resend yet. Verify the domain DNS records and try again.';
+        }
+        if (error.startsWith('email_send_failed:403')) {
+            return 'Email delivery is in test mode. Use the account owner email or configure a verified sender/domain.';
+        }
+        if (error.startsWith('email_send_failed:')) {
+            return 'Could not send verification email. Please try again later.';
+        }
         return error || fallback;
     }
 
@@ -149,10 +159,6 @@ document.addEventListener('DOMContentLoaded', function () {
         return `${leadApiBase}${path}`;
     }
 
-    function markDirty() {
-        saveButton.disabled = false;
-    }
-
     function isStalenessUnlocked() {
         return Boolean(state.stalenessLeadRegistered);
     }
@@ -170,12 +176,17 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function showStatus(message, type) {
+        if (statusTimeoutId) {
+            clearTimeout(statusTimeoutId);
+            statusTimeoutId = null;
+        }
         status.textContent = message;
         status.className = `status ${type}`;
         status.style.display = 'block';
 
-        setTimeout(() => {
+        statusTimeoutId = setTimeout(() => {
             status.style.display = 'none';
+            statusTimeoutId = null;
         }, 3500);
     }
 
@@ -196,7 +207,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function applyRegistrationUi() {
         if (state.stalenessLeadRegistered) {
             registrationWall.style.display = 'none';
-            registrationComplete.style.display = 'block';
+            registrationComplete.style.display = 'flex';
             registeredEmail.textContent = state.stalenessLeadEmail;
             stalenessLockedNote.style.display = 'none';
             return;
@@ -219,10 +230,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const locked = !isStalenessUnlocked();
         stalenessEnabledCheckbox.disabled = locked;
         const advancedDisabled = locked || !stalenessEnabledCheckbox.checked;
+        stalenessAdvancedOptions.style.display = advancedDisabled ? 'none' : 'block';
         stalenessWarnDaysInput.disabled = advancedDisabled;
         stalenessCriticalDaysInput.disabled = advancedDisabled;
-        showStalenessBadgesCheckbox.disabled = advancedDisabled;
-        highlightStaleRowsCheckbox.disabled = advancedDisabled;
     }
 
     function getCurrentSettingsFromForm() {
@@ -237,8 +247,6 @@ document.addEventListener('DOMContentLoaded', function () {
             stalenessEnabled: isStalenessUnlocked() ? stalenessEnabledCheckbox.checked : false,
             stalenessWarnDays: stalenessWarnDays,
             stalenessCriticalDays: stalenessCriticalDays,
-            showStalenessBadges: showStalenessBadgesCheckbox.checked,
-            highlightStaleRows: highlightStaleRowsCheckbox.checked,
             stalenessLeadRegistered: state.stalenessLeadRegistered,
             stalenessLeadEmail: state.stalenessLeadEmail,
             stalenessLeadRegisteredAt: state.stalenessLeadRegisteredAt,
@@ -278,6 +286,51 @@ document.addEventListener('DOMContentLoaded', function () {
         broadcastSettings(settings);
     }
 
+    function validateSettings(settings) {
+        if (settings.dateFormat !== 'auto' && settings.dateFormat.includes('YYYY')) {
+            return 'Please use YY (2-digit year) instead of YYYY';
+        }
+
+        if (settings.stalenessEnabled && settings.stalenessCriticalDays <= settings.stalenessWarnDays) {
+            return 'Critical days must be greater than warning days';
+        }
+
+        return '';
+    }
+
+    async function saveSettingsFromForm(showSuccessMessage = true, showValidationError = true) {
+        const updatedSettings = getCurrentSettingsFromForm();
+        const validationError = validateSettings(updatedSettings);
+        if (validationError) {
+            if (showValidationError) {
+                showStatus(validationError, 'error');
+            }
+            return false;
+        }
+
+        try {
+            await persistAndBroadcast(updatedSettings);
+            if (showSuccessMessage) {
+                showStatus('Saved', 'success');
+            }
+            return true;
+        } catch (error) {
+            showStatus(error.message || 'Error saving settings', 'error');
+            return false;
+        }
+    }
+
+    function scheduleAutoSave(delayMs = 0, showValidationError = true) {
+        if (autoSaveTimeoutId) {
+            clearTimeout(autoSaveTimeoutId);
+            autoSaveTimeoutId = null;
+        }
+        autoSaveTimeoutId = setTimeout(() => {
+            autoSaveTimeoutId = null;
+            saveSettingsFromForm(true, showValidationError);
+        }, delayMs);
+    }
+
     async function startLeadVerification(email) {
         const endpoint = leadApiUrl('/lead/start');
         if (!endpoint) {
@@ -311,6 +364,10 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!response.ok || !payload.ok) {
             const message = toLeadErrorMessage(payload, `Lead verification start failed (${response.status})`);
             throw new Error(message);
+        }
+
+        if (payload.verified) {
+            return payload;
         }
 
         if (!payload.statusToken) {
@@ -362,7 +419,6 @@ document.addEventListener('DOMContentLoaded', function () {
             await persistAndBroadcast(settings);
             applyRegistrationUi();
             updateStalenessControlState();
-            saveButton.disabled = true;
             if (showFeedback) {
                 showLeadStatus('Email verified. Staleness is unlocked.', 'success');
                 showStatus('Email verified. Staleness unlocked.', 'success');
@@ -400,7 +456,6 @@ document.addEventListener('DOMContentLoaded', function () {
         await persistAndBroadcast(settings);
         applyRegistrationUi();
         updateStalenessControlState();
-        saveButton.disabled = true;
         if (showFeedback) {
             showLeadStatus('Verification link expired. Click "Resend Verification Email".', 'error');
             showStatus('Verification expired', 'error');
@@ -447,13 +502,10 @@ document.addEventListener('DOMContentLoaded', function () {
         stalenessEnabledCheckbox.checked = isStalenessUnlocked() ? Boolean(settings.stalenessEnabled) : false;
         stalenessWarnDaysInput.value = parsePositiveInt(settings.stalenessWarnDays, defaults.stalenessWarnDays);
         stalenessCriticalDaysInput.value = parsePositiveInt(settings.stalenessCriticalDays, defaults.stalenessCriticalDays);
-        showStalenessBadgesCheckbox.checked = Boolean(settings.showStalenessBadges);
-        highlightStaleRowsCheckbox.checked = Boolean(settings.highlightStaleRows);
         leadEmailInput.value = state.stalenessLeadEmail || '';
 
         applyRegistrationUi();
         updateStalenessControlState();
-        saveButton.disabled = true;
 
         await syncVerificationStatusSilently();
     });
@@ -473,6 +525,25 @@ document.addEventListener('DOMContentLoaded', function () {
             checkVerificationButton.disabled = true;
             registerLeadButton.textContent = 'Sending...';
             const payload = await startLeadVerification(email);
+            if (payload.verified) {
+                setLeadState({
+                    stalenessLeadRegistered: true,
+                    stalenessLeadEmail: payload.email || email,
+                    stalenessLeadRegisteredAt: payload.verifiedAt || new Date().toISOString(),
+                    stalenessLeadVerificationPending: false,
+                    stalenessLeadStatusToken: ''
+                });
+                stalenessEnabledCheckbox.checked = true;
+                const verifiedSettings = getCurrentSettingsFromForm();
+                verifiedSettings.stalenessEnabled = true;
+                await persistAndBroadcast(verifiedSettings);
+                applyRegistrationUi();
+                updateStalenessControlState();
+                showLeadStatus('Already verified. Pro features unlocked.', 'success');
+                showStatus('Already verified', 'success');
+                return;
+            }
+
             setLeadState({
                 stalenessLeadRegistered: false,
                 stalenessLeadEmail: email,
@@ -486,7 +557,6 @@ document.addEventListener('DOMContentLoaded', function () {
             await persistAndBroadcast(settings);
             applyRegistrationUi();
             updateStalenessControlState();
-            saveButton.disabled = true;
             showLeadStatus('Verification email sent. Open the link in your inbox, then click "Check Verification Status".', 'success');
             showStatus('Verification email sent', 'success');
         } catch (error) {
@@ -539,51 +609,24 @@ document.addEventListener('DOMContentLoaded', function () {
         const updatedSettings = getCurrentSettingsFromForm();
         try {
             await persistAndBroadcast(updatedSettings);
-            saveButton.disabled = true;
             showStatus('Registration reset', 'success');
         } catch (error) {
             showStatus(error.message || 'Could not reset registration', 'error');
         }
     });
 
-    saveButton.addEventListener('click', async function () {
-        const updatedSettings = getCurrentSettingsFromForm();
-
-        if (updatedSettings.dateFormat !== 'auto' && updatedSettings.dateFormat.includes('YYYY')) {
-            showStatus('Please use YY (2-digit year) instead of YYYY', 'error');
-            return;
-        }
-
-        if (updatedSettings.stalenessCriticalDays <= updatedSettings.stalenessWarnDays) {
-            showStatus('Critical days must be greater than warning days', 'error');
-            return;
-        }
-
-        if (!isStalenessUnlocked()) {
-            updatedSettings.stalenessEnabled = false;
-            stalenessEnabledCheckbox.checked = false;
-        }
-
-        try {
-            await persistAndBroadcast(updatedSettings);
-            saveButton.disabled = true;
-            showStatus('Settings saved successfully!', 'success');
-        } catch (error) {
-            showStatus(error.message || 'Error saving settings', 'error');
-        }
-    });
-
     timeFormatRadios.forEach((radio) => {
-        radio.addEventListener('change', markDirty);
+        radio.addEventListener('change', () => scheduleAutoSave(0, true));
     });
-    colorByDayCheckbox.addEventListener('change', markDirty);
-    dateFormatInput.addEventListener('input', markDirty);
+    colorByDayCheckbox.addEventListener('change', () => scheduleAutoSave(0, true));
+    dateFormatInput.addEventListener('input', () => scheduleAutoSave(500, false));
+    dateFormatInput.addEventListener('blur', () => scheduleAutoSave(0, true));
     stalenessEnabledCheckbox.addEventListener('change', function () {
         updateStalenessControlState();
-        markDirty();
+        scheduleAutoSave(0, true);
     });
-    stalenessWarnDaysInput.addEventListener('input', markDirty);
-    stalenessCriticalDaysInput.addEventListener('input', markDirty);
-    showStalenessBadgesCheckbox.addEventListener('change', markDirty);
-    highlightStaleRowsCheckbox.addEventListener('change', markDirty);
+    stalenessWarnDaysInput.addEventListener('input', () => scheduleAutoSave(300, false));
+    stalenessWarnDaysInput.addEventListener('blur', () => scheduleAutoSave(0, true));
+    stalenessCriticalDaysInput.addEventListener('input', () => scheduleAutoSave(300, false));
+    stalenessCriticalDaysInput.addEventListener('blur', () => scheduleAutoSave(0, true));
 });
