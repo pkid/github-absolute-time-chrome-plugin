@@ -19,12 +19,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const colorByDay = colorByDayCheckbox.checked;
         const dateFormat = dateFormatInput.value.trim() || 'auto';
 
-        // Validate that YYYY is not used (only YY is allowed)
-        if (dateFormat !== 'auto' && dateFormat.includes('YYYY')) {
-            showStatus('Please use YY (2-digit year) instead of YYYY', 'error');
-            return;
-        }
-
         // Save to chrome storage
         chrome.storage.sync.set({
             timeFormat: selectedFormat,

@@ -122,12 +122,12 @@ function formatDate(dateString) {
 
     // Replace format tokens with actual values
     datePart = dateFormatSetting
-      .replace(/YYYY/g, year)
-      .replace(/YY/g, String(year).slice(-2))
-      .replace(/MM/g, String(month).padStart(2, '0'))
-      .replace(/M/g, month)
-      .replace(/DD/g, String(day).padStart(2, '0'))
-      .replace(/D/g, day);
+      .replace(/YYYY/gi, year)
+      .replace(/YY/gi, String(year).slice(-2))
+      .replace(/MM/gi, String(month).padStart(2, '0'))
+      .replace(/M/gi, month)
+      .replace(/DD/gi, String(day).padStart(2, '0'))
+      .replace(/D/gi, day);
   }
 
   // Determine hour12 setting based on user preference
