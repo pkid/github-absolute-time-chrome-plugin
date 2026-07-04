@@ -79,43 +79,33 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            // Requesting a permission requires a user gesture (this click).
+            // Persisting the host is handled by the background service worker's
+            // permissions.onAdded listener: requesting a permission can close
+            // this popup before the callback runs, so we can't rely on it here.
+            hostInput.value = '';
             chrome.permissions.request({ origins: [pattern] }, function (granted) {
                 if (chrome.runtime.lastError || !granted) {
                     showStatus('Permission not granted', 'error');
-                    return;
                 }
-
-                const updated = hosts.concat(pattern);
-                chrome.storage.sync.set({ customHosts: updated }, function () {
-                    chrome.runtime.sendMessage({ action: 'syncCustomHosts' }, function () {
-                        void chrome.runtime.lastError;
-                        hostInput.value = '';
-                        renderHosts(updated);
-                        showStatus('Site added. Reload it to see changes.', 'success');
-                    });
-                });
             });
         });
     }
 
     function removeHost(pattern) {
-        chrome.storage.sync.get(['customHosts'], function (result) {
-            const updated = (result.customHosts || []).filter(function (h) {
-                return h !== pattern;
-            });
-            chrome.storage.sync.set({ customHosts: updated }, function () {
-                chrome.permissions.remove({ origins: [pattern] }, function () {
-                    void chrome.runtime.lastError;
-                    chrome.runtime.sendMessage({ action: 'syncCustomHosts' }, function () {
-                        void chrome.runtime.lastError;
-                        renderHosts(updated);
-                        showStatus('Site removed', 'success');
-                    });
-                });
-            });
+        // Removing the permission triggers the background permissions.onRemoved
+        // listener, which updates storage and re-registers. The storage change
+        // listener below refreshes this list.
+        chrome.permissions.remove({ origins: [pattern] }, function () {
+            void chrome.runtime.lastError;
         });
     }
+
+    // Keep the list in sync when the background worker updates stored hosts.
+    chrome.storage.onChanged.addListener(function (changes, area) {
+        if (area === 'sync' && changes.customHosts) {
+            renderHosts(changes.customHosts.newValue || []);
+        }
+    });
 
     addHostButton.addEventListener('click', addHost);
     hostInput.addEventListener('keydown', function (event) {
