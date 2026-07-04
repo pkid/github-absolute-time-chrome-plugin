@@ -90,6 +90,39 @@ async function storeGrantedHost(pattern) {
   return true;
 }
 
+async function customHostStatuses() {
+  const { [STORAGE_KEY]: customHosts = [] } = await chrome.storage.sync.get(STORAGE_KEY);
+  const statuses = [];
+  for (const pattern of customHosts) {
+    let granted = false;
+    try {
+      granted = await chrome.permissions.contains({ origins: [pattern] });
+    } catch (_) {
+      granted = false;
+    }
+    statuses.push({ pattern, granted });
+  }
+  return statuses;
+}
+
+async function removeCustomHost(pattern) {
+  const { [STORAGE_KEY]: customHosts = [] } = await chrome.storage.sync.get(STORAGE_KEY);
+  const filtered = customHosts.filter((host) => host !== pattern);
+  if (filtered.length !== customHosts.length) {
+    await chrome.storage.sync.set({ [STORAGE_KEY]: filtered });
+  }
+
+  try {
+    if (await chrome.permissions.contains({ origins: [pattern] })) {
+      await chrome.permissions.remove({ origins: [pattern] });
+    }
+  } catch (_) {
+    // Ignore invalid or already-removed permissions.
+  }
+
+  await syncRegistrations();
+}
+
 chrome.runtime.onInstalled.addListener(async () => {
   await reconcileFromGrantedPermissions();
   await syncRegistrations();
@@ -144,6 +177,20 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
   if (request && request.action === 'storeGrantedHost') {
     storeGrantedHost(request.pattern)
       .then((stored) => sendResponse({ ok: true, stored }))
+      .catch((err) => sendResponse({ ok: false, error: String(err) }));
+    return true;
+  }
+
+  if (request && request.action === 'getCustomHostStatuses') {
+    customHostStatuses()
+      .then((hosts) => sendResponse({ ok: true, hosts }))
+      .catch((err) => sendResponse({ ok: false, error: String(err) }));
+    return true;
+  }
+
+  if (request && request.action === 'removeCustomHost') {
+    removeCustomHost(request.pattern)
+      .then(() => sendResponse({ ok: true }))
       .catch((err) => sendResponse({ ok: false, error: String(err) }));
     return true;
   }

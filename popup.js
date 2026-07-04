@@ -36,13 +36,52 @@ document.addEventListener('DOMContentLoaded', function () {
         return pattern.replace(/^https:\/\//, '').replace(/\/\*$/, '');
     }
 
+    function requestHostPermission(pattern) {
+        hostInput.value = '';
+        chrome.permissions.request({ origins: [pattern] }, function (granted) {
+            if (chrome.runtime.lastError || !granted) {
+                showStatus('Permission not granted', 'error');
+                return;
+            }
+
+            chrome.runtime.sendMessage({
+                action: 'storeGrantedHost',
+                pattern: pattern
+            }, function (response) {
+                if (chrome.runtime.lastError || !response || !response.ok) {
+                    showStatus('Site permission granted, but saving failed', 'error');
+                    return;
+                }
+                showStatus('Site added. Reload it to see changes.', 'success');
+                loadHosts();
+            });
+        });
+    }
+
     function renderHosts(hosts) {
         hostList.innerHTML = '';
-        hosts.forEach(function (pattern) {
+        hosts.forEach(function (host) {
+            const pattern = host.pattern;
             const li = document.createElement('li');
             const label = document.createElement('span');
+            label.className = 'host-label';
             label.textContent = displayHost(pattern);
             label.title = pattern;
+
+            const actions = document.createElement('div');
+            actions.className = 'host-actions';
+
+            if (!host.granted) {
+                const grantBtn = document.createElement('button');
+                grantBtn.className = 'grant-host-button';
+                grantBtn.type = 'button';
+                grantBtn.textContent = 'Grant access';
+                grantBtn.title = 'Grant access on this device';
+                grantBtn.addEventListener('click', function () {
+                    requestHostPermission(pattern);
+                });
+                actions.appendChild(grantBtn);
+            }
 
             const removeBtn = document.createElement('button');
             removeBtn.className = 'remove-host-button';
@@ -52,16 +91,26 @@ document.addEventListener('DOMContentLoaded', function () {
             removeBtn.addEventListener('click', function () {
                 removeHost(pattern);
             });
+            actions.appendChild(removeBtn);
 
             li.appendChild(label);
-            li.appendChild(removeBtn);
+            li.appendChild(actions);
             hostList.appendChild(li);
         });
     }
 
     function loadHosts() {
-        chrome.storage.sync.get(['customHosts'], function (result) {
-            renderHosts(result.customHosts || []);
+        chrome.runtime.sendMessage({ action: 'getCustomHostStatuses' }, function (response) {
+            if (chrome.runtime.lastError || !response || !response.ok) {
+                chrome.storage.sync.get(['customHosts'], function (result) {
+                    const hosts = (result.customHosts || []).map(function (pattern) {
+                        return { pattern: pattern, granted: false };
+                    });
+                    renderHosts(hosts);
+                });
+                return;
+            }
+            renderHosts(response.hosts || []);
         });
     }
 
@@ -72,52 +121,42 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        chrome.storage.sync.get(['customHosts'], function (result) {
-            const hosts = result.customHosts || [];
-            if (hosts.includes(pattern)) {
+        chrome.runtime.sendMessage({ action: 'getCustomHostStatuses' }, function (response) {
+            if (chrome.runtime.lastError || !response || !response.ok) {
+                showStatus('Could not check saved sites', 'error');
+                return;
+            }
+
+            const existing = (response.hosts || []).find(function (host) {
+                return host.pattern === pattern;
+            });
+            if (existing && existing.granted) {
                 showStatus('That URL is already added', 'error');
                 return;
             }
 
-            // Persisting the host is handled by the background service worker's
-            // permissions.onAdded listener: requesting a permission can close
-            // this popup before the callback runs, so we can't rely on it here.
-            hostInput.value = '';
-            chrome.permissions.request({ origins: [pattern] }, function (granted) {
-                if (chrome.runtime.lastError || !granted) {
-                    showStatus('Permission not granted', 'error');
-                    return;
-                }
-
-                // If the permission was already granted, permissions.onAdded
-                // will not fire. Ask the background worker to reconcile/save it.
-                chrome.runtime.sendMessage({
-                    action: 'storeGrantedHost',
-                    pattern: pattern
-                }, function (response) {
-                    if (chrome.runtime.lastError || !response || !response.ok) {
-                        showStatus('Site permission granted, but saving failed', 'error');
-                        return;
-                    }
-                    showStatus('Site added. Reload it to see changes.', 'success');
-                });
-            });
+            requestHostPermission(pattern);
         });
     }
 
     function removeHost(pattern) {
-        // Removing the permission triggers the background permissions.onRemoved
-        // listener, which updates storage and re-registers. The storage change
-        // listener below refreshes this list.
-        chrome.permissions.remove({ origins: [pattern] }, function () {
-            void chrome.runtime.lastError;
+        chrome.runtime.sendMessage({
+            action: 'removeCustomHost',
+            pattern: pattern
+        }, function (response) {
+            if (chrome.runtime.lastError || !response || !response.ok) {
+                showStatus('Could not remove site', 'error');
+                return;
+            }
+            showStatus('Site removed', 'success');
+            loadHosts();
         });
     }
 
     // Keep the list in sync when the background worker updates stored hosts.
     chrome.storage.onChanged.addListener(function (changes, area) {
         if (area === 'sync' && changes.customHosts) {
-            renderHosts(changes.customHosts.newValue || []);
+            loadHosts();
         }
     });
 
