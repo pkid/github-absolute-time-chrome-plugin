@@ -4,6 +4,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const timeFormatRadios = document.querySelectorAll('input[name="timeFormat"]');
     const colorByDayCheckbox = document.getElementById('colorByDay');
     const dateFormatInput = document.getElementById('dateFormat');
+    const hostInput = document.getElementById('hostInput');
+    const addHostButton = document.getElementById('addHostButton');
+    const hostList = document.getElementById('hostList');
 
     // Load saved settings
     chrome.storage.sync.get(['timeFormat', 'colorByDay', 'dateFormat'], function (result) {
@@ -12,6 +15,117 @@ document.addEventListener('DOMContentLoaded', function () {
         colorByDayCheckbox.checked = Boolean(result.colorByDay);
         dateFormatInput.value = result.dateFormat || '';
     });
+
+    // --- Custom GitHub Enterprise host management ---
+
+    // Convert user input into a valid https match pattern (e.g. https://host/*).
+    function toMatchPattern(input) {
+        const trimmed = (input || '').trim();
+        if (!trimmed) return null;
+        let url;
+        try {
+            url = new URL(trimmed.includes('://') ? trimmed : `https://${trimmed}`);
+        } catch (_) {
+            return null;
+        }
+        if (url.protocol !== 'https:' || !url.hostname) return null;
+        return `https://${url.hostname}/*`;
+    }
+
+    function displayHost(pattern) {
+        return pattern.replace(/^https:\/\//, '').replace(/\/\*$/, '');
+    }
+
+    function renderHosts(hosts) {
+        hostList.innerHTML = '';
+        hosts.forEach(function (pattern) {
+            const li = document.createElement('li');
+            const label = document.createElement('span');
+            label.textContent = displayHost(pattern);
+            label.title = pattern;
+
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'remove-host-button';
+            removeBtn.type = 'button';
+            removeBtn.textContent = '\u00d7';
+            removeBtn.title = 'Remove';
+            removeBtn.addEventListener('click', function () {
+                removeHost(pattern);
+            });
+
+            li.appendChild(label);
+            li.appendChild(removeBtn);
+            hostList.appendChild(li);
+        });
+    }
+
+    function loadHosts() {
+        chrome.storage.sync.get(['customHosts'], function (result) {
+            renderHosts(result.customHosts || []);
+        });
+    }
+
+    function addHost() {
+        const pattern = toMatchPattern(hostInput.value);
+        if (!pattern) {
+            showStatus('Enter a valid https:// URL', 'error');
+            return;
+        }
+
+        chrome.storage.sync.get(['customHosts'], function (result) {
+            const hosts = result.customHosts || [];
+            if (hosts.includes(pattern)) {
+                showStatus('That URL is already added', 'error');
+                return;
+            }
+
+            // Requesting a permission requires a user gesture (this click).
+            chrome.permissions.request({ origins: [pattern] }, function (granted) {
+                if (chrome.runtime.lastError || !granted) {
+                    showStatus('Permission not granted', 'error');
+                    return;
+                }
+
+                const updated = hosts.concat(pattern);
+                chrome.storage.sync.set({ customHosts: updated }, function () {
+                    chrome.runtime.sendMessage({ action: 'syncCustomHosts' }, function () {
+                        void chrome.runtime.lastError;
+                        hostInput.value = '';
+                        renderHosts(updated);
+                        showStatus('Site added. Reload it to see changes.', 'success');
+                    });
+                });
+            });
+        });
+    }
+
+    function removeHost(pattern) {
+        chrome.storage.sync.get(['customHosts'], function (result) {
+            const updated = (result.customHosts || []).filter(function (h) {
+                return h !== pattern;
+            });
+            chrome.storage.sync.set({ customHosts: updated }, function () {
+                chrome.permissions.remove({ origins: [pattern] }, function () {
+                    void chrome.runtime.lastError;
+                    chrome.runtime.sendMessage({ action: 'syncCustomHosts' }, function () {
+                        void chrome.runtime.lastError;
+                        renderHosts(updated);
+                        showStatus('Site removed', 'success');
+                    });
+                });
+            });
+        });
+    }
+
+    addHostButton.addEventListener('click', addHost);
+    hostInput.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            addHost();
+        }
+    });
+
+    loadHosts();
 
     // Handle save button click
     saveButton.addEventListener('click', function () {
@@ -30,14 +144,19 @@ document.addEventListener('DOMContentLoaded', function () {
             } else {
                 showStatus('Settings saved successfully!', 'success');
 
-                // Notify ALL GitHub tabs to update (not just active, since popup is open)
-                chrome.tabs.query({ url: '*://github.com/*' }, function (tabs) {
-                    tabs.forEach(function (tab) {
-                        chrome.tabs.sendMessage(tab.id, {
-                            action: 'updateSettings',
-                            timeFormat: selectedFormat,
-                            colorByDay: colorByDay,
-                            dateFormat: dateFormat
+                // Notify all GitHub tabs (default + custom hosts) to update live.
+                chrome.storage.sync.get(['customHosts'], function (result) {
+                    const urlPatterns = ['*://github.com/*'].concat(result.customHosts || []);
+                    chrome.tabs.query({ url: urlPatterns }, function (tabs) {
+                        tabs.forEach(function (tab) {
+                            chrome.tabs.sendMessage(tab.id, {
+                                action: 'updateSettings',
+                                timeFormat: selectedFormat,
+                                colorByDay: colorByDay,
+                                dateFormat: dateFormat
+                            }, function () {
+                                void chrome.runtime.lastError;
+                            });
                         });
                     });
                 });
