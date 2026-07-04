@@ -86,7 +86,21 @@ document.addEventListener('DOMContentLoaded', function () {
             chrome.permissions.request({ origins: [pattern] }, function (granted) {
                 if (chrome.runtime.lastError || !granted) {
                     showStatus('Permission not granted', 'error');
+                    return;
                 }
+
+                // If the permission was already granted, permissions.onAdded
+                // will not fire. Ask the background worker to reconcile/save it.
+                chrome.runtime.sendMessage({
+                    action: 'storeGrantedHost',
+                    pattern: pattern
+                }, function (response) {
+                    if (chrome.runtime.lastError || !response || !response.ok) {
+                        showStatus('Site permission granted, but saving failed', 'error');
+                        return;
+                    }
+                    showStatus('Site added. Reload it to see changes.', 'success');
+                });
             });
         });
     }

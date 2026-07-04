@@ -77,6 +77,19 @@ async function reconcileFromGrantedPermissions() {
   }
 }
 
+async function storeGrantedHost(pattern) {
+  if (!pattern || !(await chrome.permissions.contains({ origins: [pattern] }))) {
+    return false;
+  }
+
+  const { [STORAGE_KEY]: customHosts = [] } = await chrome.storage.sync.get(STORAGE_KEY);
+  if (!customHosts.includes(pattern)) {
+    await chrome.storage.sync.set({ [STORAGE_KEY]: customHosts.concat(pattern) });
+  }
+  await syncRegistrations();
+  return true;
+}
+
 chrome.runtime.onInstalled.addListener(async () => {
   await reconcileFromGrantedPermissions();
   await syncRegistrations();
@@ -126,5 +139,12 @@ chrome.runtime.onMessage.addListener((request, _sender, sendResponse) => {
       .then(() => sendResponse({ ok: true }))
       .catch((err) => sendResponse({ ok: false, error: String(err) }));
     return true; // Keep the message channel open for the async response.
+  }
+
+  if (request && request.action === 'storeGrantedHost') {
+    storeGrantedHost(request.pattern)
+      .then((stored) => sendResponse({ ok: true, stored }))
+      .catch((err) => sendResponse({ ok: false, error: String(err) }));
+    return true;
   }
 });
