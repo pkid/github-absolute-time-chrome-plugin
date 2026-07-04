@@ -121,22 +121,9 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        chrome.runtime.sendMessage({ action: 'getCustomHostStatuses' }, function (response) {
-            if (chrome.runtime.lastError || !response || !response.ok) {
-                showStatus('Could not check saved sites', 'error');
-                return;
-            }
-
-            const existing = (response.hosts || []).find(function (host) {
-                return host.pattern === pattern;
-            });
-            if (existing && existing.granted) {
-                showStatus('That URL is already added', 'error');
-                return;
-            }
-
-            requestHostPermission(pattern);
-        });
+        // Keep this request directly in the click handler path; Chrome requires
+        // optional permission prompts to be triggered by a user gesture.
+        requestHostPermission(pattern);
     }
 
     function removeHost(pattern) {
