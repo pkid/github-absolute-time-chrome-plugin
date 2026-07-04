@@ -108,6 +108,101 @@
             line-height: 1.4;
         }
 
+        .host-input-row {
+            display: flex;
+            gap: 6px;
+        }
+
+        .host-input-row .format-input {
+            flex: 1;
+        }
+
+        .add-host-button {
+            padding: 6px 12px;
+            background-color: #0969da;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: background-color 0.2s;
+        }
+
+        .add-host-button:hover {
+            background-color: #0a5cc7;
+        }
+
+        .host-list {
+            list-style: none;
+            margin: 8px 0 0 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .host-list li {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            padding: 5px 8px;
+            background-color: #f6f8fa;
+            border: 1px solid #d0d7de;
+            border-radius: 4px;
+            font-size: 11px;
+            color: #24292f;
+        }
+
+        .host-list li span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .host-label {
+            min-width: 0;
+        }
+
+        .host-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .grant-host-button {
+            border: 1px solid #0969da;
+            background: #ffffff;
+            color: #0969da;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 10px;
+            padding: 2px 6px;
+            white-space: nowrap;
+        }
+
+        .grant-host-button:hover {
+            background: #ddf4ff;
+        }
+
+        .remove-host-button {
+            border: none;
+            background: transparent;
+            color: #cf222e;
+            cursor: pointer;
+            font-size: 14px;
+            line-height: 1;
+            padding: 0 2px;
+            flex-shrink: 0;
+        }
+
+        .remove-host-button:hover {
+            color: #a40e26;
+        }
+
         .save-button {
             width: 100%;
             padding: 8px;
@@ -194,6 +289,18 @@
                 <div class="example">Same day shares same color</div>
             </label>
         </div>
+    </div>
+
+    <div class="setting-group">
+        <label class="setting-label">GitHub Enterprise URLs</label>
+        <div class="host-input-row">
+            <input type="text" id="hostInput" class="format-input" placeholder="https://github.mycompany.com">
+            <button class="add-host-button" id="addHostButton" type="button">Add</button>
+        </div>
+        <div class="format-help">
+            Add self-hosted GitHub URLs. You'll be asked to grant access to each site.
+        </div>
+        <ul class="host-list" id="hostList"></ul>
     </div>
 
     <button class="save-button" id="saveButton">Save Settings</button>
