@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "GitHub Absolute Dates Plugin",
-    "version": "0.0.18",
+    "version": "0.0.17",
     "description": "Display absolute dates on GitHub pages instead of relative time",
     "icons": {
         "16": "icons/icon16.png",
@@ -9,15 +9,8 @@
         "128": "icons/icon128.png"
     },
     "permissions": [
-        "storage",
-        "scripting"
+        "storage"
     ],
-    "optional_host_permissions": [
-        "https://*/*"
-    ],
-    "background": {
-        "service_worker": "background.js"
-    },
     "action": {
         "default_popup": "popup.html",
         "default_title": "GitHub Absolute Time Settings"

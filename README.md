@@ -5,7 +5,6 @@ This Chrome extension replaces relative time expressions on GitHub with absolute
 ## Features
 
 - Converts relative time expressions (e.g., "2 days ago") to absolute dates and times (e.g., "9/14/24, 4:25 PM")
-- Works on self-hosted GitHub Enterprise instances via configurable URLs (no need to edit the manifest)
 
 ## Installation
 
@@ -26,18 +25,7 @@ This Chrome extension replaces relative time expressions on GitHub with absolute
 
 ## Usage
 
-Once installed, the extension will automatically convert relative times to absolute dates and times on GitHub pages.
-
-### GitHub Enterprise / self-hosted instances
-
-If your organization runs GitHub on a custom domain (e.g. `https://github.mycompany.com`), you can enable the extension there without editing any files:
-
-1. Click the extension icon to open the popup.
-2. Under **GitHub Enterprise URLs**, enter your instance URL and click **Add**.
-3. Chrome will ask you to grant access to that site — approve it.
-4. Reload the tab; relative times will now be converted.
-
-To stop the extension from running on a site, remove it from the same list (this also revokes the granted permission).
+Once installed, the extension will automatically convert relative times to absolute dates and times on GitHub pages. 
 
 ## Development
 
